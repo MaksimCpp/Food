@@ -1,0 +1,12 @@
+go 1.25.0
+
+use (
+	./services/analytics
+	./services/auth
+	./services/gateway
+	./services/notification
+	./services/order
+	./services/restaurant
+	./services/status
+	./services/user
+)
