@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/MaksimCpp/auth/internal/domain"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -48,6 +51,12 @@ func (uc *PostgreSQLRegisterUseCase) Execute(
 	result, err := uc.repo.Create(ctx, &user)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+	
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, domain.ErrUserAlreadyExist
+		}
+		
 		return nil, err
 	}
 
