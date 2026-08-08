@@ -13,7 +13,6 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
       test:
