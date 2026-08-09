@@ -9,6 +9,7 @@ import (
 )
 
 type RegisterInput struct {
+	Username string
 	Email    string
 	Password string
 }
@@ -42,6 +43,7 @@ func (uc *PostgreSQLRegisterUseCase) Execute(
 	}
 
 	user := domain.User{
+		Username: in.Username,
 		Email: in.Email,
 		PasswordHash: string(passwordHash),
 	}
