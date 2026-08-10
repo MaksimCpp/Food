@@ -37,9 +37,10 @@ func main() {
 
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
 	regiserUC := usecase.NewPostgreSQLRegisterUseCase(userRepo)
+	loginUC := usecase.NewPostgreSQLLoginUseCase(userRepo)
 
 	server := grpc.NewServer()
-	handler := deliverygrpc.NewAuthHandler(regiserUC)
+	handler := deliverygrpc.NewAuthHandler(regiserUC, loginUC)
 	authpb.RegisterAuthServiceServer(server, handler)
 
 	err = server.Serve(lis)

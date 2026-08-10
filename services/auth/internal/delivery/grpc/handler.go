@@ -15,13 +15,16 @@ type AuthHandler struct {
 	authpb.UnimplementedAuthServiceServer
 
 	registerUC usecase.RegisterUseCase
+	loginUC    usecase.LoginUseCase
 }
 
 func NewAuthHandler(
 	registerUC usecase.RegisterUseCase,
+	loginUC    usecase.LoginUseCase,
 ) *AuthHandler {
 	return &AuthHandler{
 		registerUC: registerUC,
+		loginUC: loginUC,
 	}
 }
 
@@ -62,7 +65,33 @@ func (h *AuthHandler) Login(
 	ctx context.Context,
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
-	return nil, status.Error(codes.OK, "OK")
+	in := usecase.LoginInput{
+		Email: req.Email,
+		Password: req.Password,
+	}
+
+	result, err := h.loginUC.Execute(ctx, &in)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrUserNotFound):
+			return nil, status.Error(codes.NotFound, "User not found.")
+		
+		case errors.Is(err, domain.ErrInvalidCredentials):
+			return nil, status.Error(codes.InvalidArgument, "Invalid credentials.")
+
+		default:
+			return nil, status.Error(codes.Internal, "Internal server.")
+		}
+	}
+
+	// Временно
+	response := authpb.LoginResponse{
+		AccessToken: result.Username,
+		RefreshToken: result.Username,
+	}
+
+	return &response, nil
 }
 
 func (h *AuthHandler) Refresh(
