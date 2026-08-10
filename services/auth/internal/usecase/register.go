@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"net/mail"
 
 	"github.com/MaksimCpp/auth/internal/domain"
 
@@ -40,6 +41,12 @@ func (uc *PostgreSQLRegisterUseCase) Execute(
 
 	if err != nil {
 		return nil, err
+	}
+
+	_, err = mail.ParseAddress(in.Email)
+
+	if err != nil {
+		return nil, domain.ErrInvalidEmail
 	}
 
 	user := domain.User{

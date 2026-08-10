@@ -20,10 +20,6 @@ func NewPostgreSQLUserRepository(pool *pgxpool.Pool) *PostgreSQLUserRepository {
 	}
 }
 
-	// Create(ctx context.Context, user *User) (*User, error)
-	// GetByEmail(ctx context.Context, email string) (*User, error)
-	// GetByID(ctx context.Context, id int64) (*User, error)
-
 func (repo *PostgreSQLUserRepository) Create(
 	ctx context.Context, user *domain.User,
 ) (*domain.User, error) {
@@ -31,7 +27,7 @@ func (repo *PostgreSQLUserRepository) Create(
 		INSERT INTO users
 		(username, email, password_hash)
 		VALUES ($1, $2, $3)
-		RETURNING id, email;
+		RETURNING id, username, email, password_hash, created_at;
 	`
 
 	var result domain.User
@@ -44,7 +40,10 @@ func (repo *PostgreSQLUserRepository) Create(
 		user.PasswordHash,
 	).Scan(
 		&result.ID,
+		&result.Username,
 		&result.Email,
+		&result.PasswordHash,
+		&result.CreatedAt,
 	)
 
 	if err != nil {
@@ -64,7 +63,7 @@ func (repo *PostgreSQLUserRepository) GetByEmail(
 	ctx context.Context, email string,
 ) (*domain.User, error) {
 	query := `
-		SELECT id, username, email
+		SELECT id, username, email, password_hash, created_at
 		FROM users
 		WHERE email = $1;
 	`
@@ -79,6 +78,8 @@ func (repo *PostgreSQLUserRepository) GetByEmail(
 		&result.ID,
 		&result.Username,
 		&result.Email,
+		&result.PasswordHash,
+		&result.CreatedAt,
 	)
 
 	if err != nil {
@@ -96,7 +97,7 @@ func (repo *PostgreSQLUserRepository) GetByID(
 	ctx context.Context, id int64,
 ) (*domain.User, error) {
 	query := `
-		SELECT id, username, email
+		SELECT id, username, email, password_hash, created_at
 		FROM users
 		WHERE id = $1;
 	`
@@ -111,6 +112,8 @@ func (repo *PostgreSQLUserRepository) GetByID(
 		&result.ID,
 		&result.Username,
 		&result.Email,
+		&result.PasswordHash,
+		&result.CreatedAt,
 	)
 
 	if err != nil {
