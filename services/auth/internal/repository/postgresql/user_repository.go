@@ -91,3 +91,35 @@ func (repo *PostgreSQLUserRepository) GetByEmail(
 
 	return &result, nil
 }
+
+func (repo *PostgreSQLUserRepository) GetByID(
+	ctx context.Context, id int64,
+) (*domain.User, error) {
+	query := `
+		SELECT id, username, email
+		FROM users
+		WHERE id = $1;
+	`
+
+	var result domain.User
+
+	err := repo.pool.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&result.ID,
+		&result.Username,
+		&result.Email,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	return &result, nil
+}
