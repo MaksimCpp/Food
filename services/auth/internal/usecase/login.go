@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 
 	"github.com/MaksimCpp/auth/internal/domain"
 	"golang.org/x/crypto/bcrypt"
@@ -39,6 +40,10 @@ func (uc *PostgreSQLLoginUseCase) Execute(
 	user, err := uc.repo.GetByEmail(ctx, in.Email)
 
 	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, domain.ErrInvalidCredentials
+		}
+		
 		return nil, err
 	}
 

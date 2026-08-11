@@ -8,9 +8,11 @@ import (
 )
 
 type AuthConfig struct {
-	DBUrl string
+	DBUrl        string
 
-	GRPCPort string
+	GRPCPort     string
+	JWTSecretKey string
+	JWTTTLHours  string
 }
 
 func Load() *AuthConfig {
@@ -30,6 +32,7 @@ func Load() *AuthConfig {
 		),
 
 		GRPCPort: os.Getenv("GRPC_AUTH_PORT"),
+		JWTSecretKey: os.Getenv("JWT_SECRET_KEY"),
 	}
 	
 }

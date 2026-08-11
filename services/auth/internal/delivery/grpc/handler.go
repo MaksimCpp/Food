@@ -74,11 +74,8 @@ func (h *AuthHandler) Login(
 
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrUserNotFound):
-			return nil, status.Error(codes.NotFound, "User not found.")
-		
 		case errors.Is(err, domain.ErrInvalidCredentials):
-			return nil, status.Error(codes.InvalidArgument, "Invalid credentials.")
+			return nil, status.Error(codes.Unauthenticated, "Invalid credentials.")
 
 		default:
 			return nil, status.Error(codes.Internal, "Internal server.")
