@@ -3,13 +3,13 @@ package jwtservice
 import (
 	"time"
 
-	"github.com/MaksimCpp/auth/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type JWTTokenService struct {
-	secretKey string
-	ttl       time.Duration
+	secretKey   string
+	access_ttl  time.Duration
+	refresh_ttl time.Duration
 }
 
 type Payload struct {
@@ -20,10 +20,15 @@ type Payload struct {
 	// GenerateAccessToken(userID int64) (string, error)
 	// GenerateRefreshToken(userID int64) (string, error)
 
-func NewJWTTokenService(secretKey string, ttl time.Duration) *JWTTokenService {
+func NewJWTTokenService(
+	secretKey string, 
+	access_ttl  time.Duration,
+	refresh_ttl time.Duration,
+) *JWTTokenService {
 	return &JWTTokenService{
 		secretKey: secretKey,
-		ttl: ttl,
+		access_ttl: access_ttl,
+		refresh_ttl: refresh_ttl,
 	}
 }
 
@@ -31,7 +36,23 @@ func (s *JWTTokenService) GenerateAccessToken(userID int64) (string, error) {
 	payload := Payload{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.ttl)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.access_ttl)),
+		},
+	}
+
+	token := jwt.NewWithClaims(
+		jwt.SigningMethodHS256, 
+		&payload,
+	)
+
+	return token.SignedString([]byte(s.secretKey))
+}
+
+func (s *JWTTokenService) GenerateRefreshToken(userID int64) (string, error) {
+	payload := Payload{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.refresh_ttl)),
 		},
 	}
 
