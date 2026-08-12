@@ -12,7 +12,6 @@ type AuthConfig struct {
 
 	GRPCPort     string
 	JWTSecretKey string
-	JWTTTLHours  string
 }
 
 func Load() *AuthConfig {

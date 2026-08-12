@@ -9,6 +9,7 @@ import (
 
 	"github.com/MaksimCpp/auth/internal/config"
 	deliverygrpc "github.com/MaksimCpp/auth/internal/delivery/grpc"
+	jwtservice "github.com/MaksimCpp/auth/internal/infrastructure/jwt_service"
 	repository "github.com/MaksimCpp/auth/internal/repository/postgresql"
 	"github.com/MaksimCpp/auth/internal/usecase"
 	authpb "github.com/MaksimCpp/auth/proto"
@@ -35,9 +36,15 @@ func main() {
 
 	defer pool.Close()
 
+	tokenService := jwtservice.NewJWTTokenService(
+		cfg.JWTSecretKey,
+		15 * time.Minute,
+		7 * 24 * time.Hour,
+	)
+
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
 	regiserUC := usecase.NewPostgreSQLRegisterUseCase(userRepo)
-	loginUC := usecase.NewPostgreSQLLoginUseCase(userRepo)
+	loginUC := usecase.NewPostgreSQLLoginUseCase(userRepo, tokenService)
 
 	server := grpc.NewServer()
 	handler := deliverygrpc.NewAuthHandler(regiserUC, loginUC)

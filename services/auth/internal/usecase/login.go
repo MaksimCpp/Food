@@ -14,10 +14,8 @@ type LoginInput struct {
 }
 
 type LoginOutput struct {
-	// AccessToken  string
-	// RefreshToken string
-	// Временно
-	Username string
+	AccessToken  string
+	RefreshToken string
 }
 
 type LoginUseCase interface {
@@ -25,12 +23,17 @@ type LoginUseCase interface {
 }
 
 type PostgreSQLLoginUseCase struct {
-	repo domain.UserRepository
+	repo         domain.UserRepository
+	tokenService domain.TokenService
 }
 
-func NewPostgreSQLLoginUseCase(repo domain.UserRepository) *PostgreSQLLoginUseCase {
+func NewPostgreSQLLoginUseCase(
+	repo domain.UserRepository,
+	tokenService domain.TokenService,
+) *PostgreSQLLoginUseCase {
 	return &PostgreSQLLoginUseCase{
 		repo: repo,
+		tokenService: tokenService,
 	}
 }
 
@@ -43,7 +46,7 @@ func (uc *PostgreSQLLoginUseCase) Execute(
 		if errors.Is(err, domain.ErrUserNotFound) {
 			return nil, domain.ErrInvalidCredentials
 		}
-		
+
 		return nil, err
 	}
 
@@ -53,8 +56,21 @@ func (uc *PostgreSQLLoginUseCase) Execute(
 		return nil, domain.ErrInvalidCredentials
 	}
 
+	accessToken, err := uc.tokenService.GenerateAccessToken(user.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := uc.tokenService.GenerateRefreshToken(user.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
 	out := LoginOutput{
-		Username: user.Username,
+		AccessToken: accessToken,
+		RefreshToken: refreshToken,
 	}
 
 	return &out, nil

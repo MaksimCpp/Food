@@ -84,8 +84,8 @@ func (h *AuthHandler) Login(
 
 	// Временно
 	response := authpb.LoginResponse{
-		AccessToken: result.Username,
-		RefreshToken: result.Username,
+		AccessToken: result.AccessToken,
+		RefreshToken: result.RefreshToken,
 	}
 
 	return &response, nil
