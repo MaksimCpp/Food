@@ -3,7 +3,13 @@ package jwtservice
 import (
 	"time"
 
+	"github.com/MaksimCpp/auth/internal/domain"
 	"github.com/golang-jwt/jwt/v5"
+)
+
+const (
+	TokenTypeAccess  = "access"
+	TokenTypeRefresh = "refresh"
 )
 
 type JWTTokenService struct {
@@ -14,11 +20,9 @@ type JWTTokenService struct {
 
 type Payload struct {
 	jwt.RegisteredClaims
-	UserID int64
+	UserID    int64
+	TokenType string
 }
-
-	// GenerateAccessToken(userID int64) (string, error)
-	// GenerateRefreshToken(userID int64) (string, error)
 
 func NewJWTTokenService(
 	secretKey string, 
@@ -35,6 +39,7 @@ func NewJWTTokenService(
 func (s *JWTTokenService) GenerateAccessToken(userID int64) (string, error) {
 	payload := Payload{
 		UserID: userID,
+		TokenType: TokenTypeAccess,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.access_ttl)),
 		},
@@ -51,6 +56,7 @@ func (s *JWTTokenService) GenerateAccessToken(userID int64) (string, error) {
 func (s *JWTTokenService) GenerateRefreshToken(userID int64) (string, error) {
 	payload := Payload{
 		UserID: userID,
+		TokenType: TokenTypeRefresh,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.refresh_ttl)),
 		},
@@ -62,4 +68,38 @@ func (s *JWTTokenService) GenerateRefreshToken(userID int64) (string, error) {
 	)
 
 	return token.SignedString([]byte(s.secretKey))
+}
+
+func (s *JWTTokenService) ValidateAccessToken(token string) (int64, error) {
+	jwtToken, err := jwt.ParseWithClaims(
+		token, 
+		&Payload{}, 
+		func(t *jwt.Token) (interface{}, error) {
+			if t.Method != jwt.SigningMethodHS256 {
+				return nil, domain.ErrInvalidToken
+			}
+
+			return s.secretKey, nil
+		},
+	)
+
+	if err != nil {
+		return 0, domain.ErrInvalidToken
+	}
+
+	if !jwtToken.Valid {
+		return 0, domain.ErrInvalidToken
+	}
+
+	claims, ok := jwtToken.Claims.(*Payload)
+
+	if !ok {
+		return 0, domain.ErrInvalidToken
+	}
+
+	if claims.TokenType != TokenTypeAccess {
+		return 0, domain.ErrInvalidToken
+	}
+
+	return claims.UserID, nil
 }
