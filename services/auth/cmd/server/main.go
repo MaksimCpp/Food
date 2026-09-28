@@ -9,6 +9,7 @@ import (
 
 	"github.com/MaksimCpp/auth/internal/config"
 	deliverygrpc "github.com/MaksimCpp/auth/internal/delivery/grpc"
+	"github.com/MaksimCpp/auth/internal/delivery/grpc/middleware"
 	jwtservice "github.com/MaksimCpp/auth/internal/infrastructure/jwt_service"
 	repository "github.com/MaksimCpp/auth/internal/repository/postgresql"
 	"github.com/MaksimCpp/auth/internal/usecase"
@@ -46,7 +47,7 @@ func main() {
 	regiserUC := usecase.NewPostgreSQLRegisterUseCase(userRepo)
 	loginUC := usecase.NewPostgreSQLLoginUseCase(userRepo, tokenService)
 
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(middleware.AuthInterceptor(tokenService)))
 	handler := deliverygrpc.NewAuthHandler(regiserUC, loginUC)
 	authpb.RegisterAuthServiceServer(server, handler)
 

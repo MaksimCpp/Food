@@ -103,3 +103,37 @@ func (s *JWTTokenService) ValidateAccessToken(token string) (int64, error) {
 
 	return claims.UserID, nil
 }
+
+func (s *JWTTokenService) ValidateRefreshToken(token string) (int64, error) {
+	jwtToken, err := jwt.ParseWithClaims(
+		token, 
+		&Payload{}, 
+		func(t *jwt.Token) (interface{}, error) {
+			if t.Method != jwt.SigningMethodHS256 {
+				return nil, domain.ErrInvalidToken
+			}
+
+			return s.secretKey, nil
+		},
+	)
+
+	if err != nil {
+		return 0, domain.ErrInvalidToken
+	}
+
+	if !jwtToken.Valid {
+		return 0, domain.ErrInvalidToken
+	}
+
+	claims, ok := jwtToken.Claims.(*Payload)
+
+	if !ok {
+		return 0, domain.ErrInvalidToken
+	}
+
+	if claims.TokenType != TokenTypeRefresh {
+		return 0, domain.ErrInvalidToken
+	}
+
+	return claims.UserID, nil
+}

@@ -1,4 +1,4 @@
-package deliverygrpc
+package middleware
 
 import (
 	"context"
@@ -11,13 +11,28 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type contextKey string
+
+const userIDKey contextKey = "user_id"
+
+var publicMethods = map[string]struct{}{
+	"/auth.AuthService/Register": {},
+	"/auth.AuthService/Login":    {},
+	// "/auth.AuthService/Refresh":  {},
+}
+
 func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerInterceptor {
 	return func(
-		ctx context.Context, 
-		req any, 
-		info *grpc.UnaryServerInfo, 
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (resp any, err error) {
+
+		if _, ok := publicMethods[info.FullMethod]; ok {
+			return handler(ctx, req)
+		}
+
 		md, ok := metadata.FromIncomingContext(ctx)
 
 		if !ok {
@@ -61,7 +76,7 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 
 		ctx = context.WithValue(
 			ctx,
-			"user_id",
+			userIDKey,
 			userID,
 		)
 		return handler(ctx, req)
