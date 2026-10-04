@@ -21,6 +21,7 @@ type JWTTokenService struct {
 type Payload struct {
 	jwt.RegisteredClaims
 	UserID    int64
+	Role      string
 	TokenType string
 }
 
@@ -36,9 +37,10 @@ func NewJWTTokenService(
 	}
 }
 
-func (s *JWTTokenService) GenerateAccessToken(userID int64) (string, error) {
+func (s *JWTTokenService) GenerateAccessToken(userID int64, role string) (string, error) {
 	payload := Payload{
 		UserID: userID,
+		Role: role,
 		TokenType: TokenTypeAccess,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.access_ttl)),
@@ -53,9 +55,10 @@ func (s *JWTTokenService) GenerateAccessToken(userID int64) (string, error) {
 	return token.SignedString([]byte(s.secretKey))
 }
 
-func (s *JWTTokenService) GenerateRefreshToken(userID int64) (string, error) {
+func (s *JWTTokenService) GenerateRefreshToken(userID int64, role string) (string, error) {
 	payload := Payload{
 		UserID: userID,
+		Role: role,
 		TokenType: TokenTypeRefresh,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.refresh_ttl)),
@@ -70,7 +73,7 @@ func (s *JWTTokenService) GenerateRefreshToken(userID int64) (string, error) {
 	return token.SignedString([]byte(s.secretKey))
 }
 
-func (s *JWTTokenService) ValidateAccessToken(token string) (int64, error) {
+func (s *JWTTokenService) ValidateAccessToken(token string) (int64, string, error) {
 	jwtToken, err := jwt.ParseWithClaims(
 		token, 
 		&Payload{}, 
@@ -79,32 +82,32 @@ func (s *JWTTokenService) ValidateAccessToken(token string) (int64, error) {
 				return nil, domain.ErrInvalidToken
 			}
 
-			return s.secretKey, nil
+			return []byte(s.secretKey), nil
 		},
 	)
 
 	if err != nil {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	if !jwtToken.Valid {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	claims, ok := jwtToken.Claims.(*Payload)
 
 	if !ok {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	if claims.TokenType != TokenTypeAccess {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
-	return claims.UserID, nil
+	return claims.UserID, claims.Role, nil
 }
 
-func (s *JWTTokenService) ValidateRefreshToken(token string) (int64, error) {
+func (s *JWTTokenService) ValidateRefreshToken(token string) (int64, string, error) {
 	jwtToken, err := jwt.ParseWithClaims(
 		token, 
 		&Payload{}, 
@@ -113,27 +116,27 @@ func (s *JWTTokenService) ValidateRefreshToken(token string) (int64, error) {
 				return nil, domain.ErrInvalidToken
 			}
 
-			return s.secretKey, nil
+			return []byte(s.secretKey), nil
 		},
 	)
 
 	if err != nil {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	if !jwtToken.Valid {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	claims, ok := jwtToken.Claims.(*Payload)
 
 	if !ok {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
 	if claims.TokenType != TokenTypeRefresh {
-		return 0, domain.ErrInvalidToken
+		return 0, "", domain.ErrInvalidToken
 	}
 
-	return claims.UserID, nil
+	return claims.UserID, claims.Role, nil
 }

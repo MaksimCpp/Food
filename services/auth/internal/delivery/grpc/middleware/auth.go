@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/MaksimCpp/auth/internal/authcontext"
 	"github.com/MaksimCpp/auth/internal/domain"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -14,11 +15,19 @@ import (
 type contextKey string
 
 const userIDKey contextKey = "user_id"
+const rolKey contextKey = "role"
 
 var publicMethods = map[string]struct{}{
-	"/auth.AuthService/Register": {},
-	"/auth.AuthService/Login":    {},
-	// "/auth.AuthService/Refresh":  {},
+	"/auth.AuthService/RegisterUser":  {},
+	"/auth.AuthService/RegisterAdmin": {},
+	"/auth.AuthService/LoginUser":     {},
+	"/auth.AuthService/LoginAdmin":    {},
+	"/auth.AuthService/LoginCourier":  {},
+	"/auth.AuthService/Refresh":       {},
+}
+
+var methodsForAdmin = map[string]struct{} {
+	"/auth.AuthService/RegisterCourier": {},
 }
 
 func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerInterceptor {
@@ -67,7 +76,7 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 			)
 		}
 
-		userID, err := tokenService.ValidateAccessToken(token)
+		userID, role, err := tokenService.ValidateAccessToken(token)
 		if err != nil {
 			return nil, status.Error(
 				codes.Unauthenticated, "Invalid access token",
@@ -79,6 +88,41 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 			userIDKey,
 			userID,
 		)
+
+		ctx = context.WithValue(
+			ctx,
+			rolKey,
+			role,
+		)
+		return handler(ctx, req)
+	}
+}
+
+func RoleInterceptor() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context, 
+		req any, 
+		info *grpc.UnaryServerInfo, 
+		handler grpc.UnaryHandler,
+	) (resp any, err error) {
+		if _, ok := methodsForAdmin[info.FullMethod]; !ok {
+			return handler(ctx, req)
+		}
+
+		role, ok := authcontext.GetRole(ctx)
+
+		if !ok {
+			return nil, status.Error(
+				codes.Unauthenticated, "Unauthenticated",
+			)
+		}
+
+		if role != domain.RoleAdmin {
+			return nil, status.Error(
+				codes.PermissionDenied, "Permission denied",
+			)
+		}
+
 		return handler(ctx, req)
 	}
 }

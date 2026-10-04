@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func UserID(ctx context.Context) (int64, bool) {
+func GetUserID(ctx context.Context) (int64, bool) {
 	md, ok := metadata.FromIncomingContext(ctx)
 
 	if !ok {
@@ -22,4 +22,17 @@ func UserID(ctx context.Context) (int64, bool) {
 	}
 
 	return userID, true
+}
+
+func GetRole(ctx context.Context) (string, bool) {
+	md, ok := metadata.FromIncomingContext(ctx)
+
+	if !ok {
+		return "", false
+	}
+
+	rolesValues := md.Get("role")
+	role := rolesValues[0]
+
+	return role, true
 }
