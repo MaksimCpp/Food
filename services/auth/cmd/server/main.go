@@ -9,9 +9,10 @@ import (
 
 	"github.com/MaksimCpp/auth/internal/config"
 	deliverygrpc "github.com/MaksimCpp/auth/internal/delivery/grpc"
+	"github.com/MaksimCpp/auth/internal/delivery/grpc/middleware"
 	jwtservice "github.com/MaksimCpp/auth/internal/infrastructure/jwt_service"
 	repository "github.com/MaksimCpp/auth/internal/repository/postgresql"
-	"github.com/MaksimCpp/auth/internal/usecase"
+	"github.com/MaksimCpp/auth/internal/service"
 	authpb "github.com/MaksimCpp/auth/proto"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
@@ -43,11 +44,10 @@ func main() {
 	)
 
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
-	regiserUC := usecase.NewPostgreSQLRegisterUseCase(userRepo)
-	loginUC := usecase.NewPostgreSQLLoginUseCase(userRepo, tokenService)
+	userService := service.NewPostgreSQLUserService(cfg.AdminCode, userRepo, tokenService)
 
-	server := grpc.NewServer()
-	handler := deliverygrpc.NewAuthHandler(regiserUC, loginUC)
+	server := grpc.NewServer(grpc.UnaryInterceptor(middleware.AuthInterceptor(tokenService)))
+	handler := deliverygrpc.NewAuthHandler(userService)
 	authpb.RegisterAuthServiceServer(server, handler)
 
 	err = server.Serve(lis)

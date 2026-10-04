@@ -25,9 +25,9 @@ func (repo *PostgreSQLUserRepository) Create(
 ) (*domain.User, error) {
 	query := `
 		INSERT INTO users
-		(username, email, password_hash)
-		VALUES ($1, $2, $3)
-		RETURNING id, username, email, password_hash, created_at;
+		(username, email, role, password_hash)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, username, email, role, password_hash, created_at;
 	`
 
 	var result domain.User
@@ -37,11 +37,13 @@ func (repo *PostgreSQLUserRepository) Create(
 		query,
 		user.Username,
 		user.Email,
+		user.Role,
 		user.PasswordHash,
 	).Scan(
 		&result.ID,
 		&result.Username,
 		&result.Email,
+		&result.Role,
 		&result.PasswordHash,
 		&result.CreatedAt,
 	)
@@ -63,7 +65,7 @@ func (repo *PostgreSQLUserRepository) GetByEmail(
 	ctx context.Context, email string,
 ) (*domain.User, error) {
 	query := `
-		SELECT id, username, email, password_hash, created_at
+		SELECT id, username, email, role, password_hash, created_at
 		FROM users
 		WHERE email = $1;
 	`
@@ -78,6 +80,7 @@ func (repo *PostgreSQLUserRepository) GetByEmail(
 		&result.ID,
 		&result.Username,
 		&result.Email,
+		&result.Role,
 		&result.PasswordHash,
 		&result.CreatedAt,
 	)
@@ -97,7 +100,7 @@ func (repo *PostgreSQLUserRepository) GetByID(
 	ctx context.Context, id int64,
 ) (*domain.User, error) {
 	query := `
-		SELECT id, username, email, password_hash, created_at
+		SELECT id, username, email, role, password_hash, created_at
 		FROM users
 		WHERE id = $1;
 	`
@@ -112,6 +115,7 @@ func (repo *PostgreSQLUserRepository) GetByID(
 		&result.ID,
 		&result.Username,
 		&result.Email,
+		&result.Role,
 		&result.PasswordHash,
 		&result.CreatedAt,
 	)
