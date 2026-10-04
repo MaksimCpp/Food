@@ -2,22 +2,17 @@ package authcontext
 
 import (
 	"context"
-	"strconv"
-
-	"google.golang.org/grpc/metadata"
 )
 
+type contextKey string
+
+const UserIDKey contextKey = "user_id"
+const RoleKey contextKey = "role"
+
 func GetUserID(ctx context.Context) (int64, bool) {
-	md, ok := metadata.FromIncomingContext(ctx)
+	userID, ok := ctx.Value(UserIDKey).(int64)
 
 	if !ok {
-		return -1, false
-	}
-
-	userIDValues := md.Get("user_id")
-	userID, err := strconv.ParseInt(userIDValues[0], 10, 64)
-
-	if err != nil {
 		return -1, false
 	}
 
@@ -25,14 +20,11 @@ func GetUserID(ctx context.Context) (int64, bool) {
 }
 
 func GetRole(ctx context.Context) (string, bool) {
-	md, ok := metadata.FromIncomingContext(ctx)
+	role, ok := ctx.Value(RoleKey).(string)
 
 	if !ok {
 		return "", false
 	}
-
-	rolesValues := md.Get("role")
-	role := rolesValues[0]
 
 	return role, true
 }

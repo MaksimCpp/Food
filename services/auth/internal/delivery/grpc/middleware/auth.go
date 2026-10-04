@@ -12,11 +12,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type contextKey string
-
-const userIDKey contextKey = "user_id"
-const rolKey contextKey = "role"
-
 var publicMethods = map[string]struct{}{
 	"/auth.AuthService/RegisterUser":  {},
 	"/auth.AuthService/RegisterAdmin": {},
@@ -85,13 +80,13 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 
 		ctx = context.WithValue(
 			ctx,
-			userIDKey,
+			authcontext.UserIDKey,
 			userID,
 		)
 
 		ctx = context.WithValue(
 			ctx,
-			rolKey,
+			authcontext.RoleKey,
 			role,
 		)
 		return handler(ctx, req)

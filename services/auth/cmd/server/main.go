@@ -27,10 +27,10 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	// defer cancel()
 
-	pool, err := pgxpool.New(ctx, cfg.DBUrl)
+	pool, err := pgxpool.New(context.Background(), cfg.DBUrl)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -46,7 +46,12 @@ func main() {
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
 	userService := service.NewPostgreSQLUserService(cfg.AdminCode, userRepo, tokenService)
 
-	server := grpc.NewServer(grpc.UnaryInterceptor(middleware.AuthInterceptor(tokenService)))
+	server := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			middleware.AuthInterceptor(tokenService),
+			middleware.RoleInterceptor(),
+		),
+	)
 	handler := deliverygrpc.NewAuthHandler(userService)
 	authpb.RegisterAuthServiceServer(server, handler)
 
