@@ -14,14 +14,17 @@ import (
 type AuthHandler struct {
 	authpb.UnimplementedAuthServiceServer
 
-	service domain.UserService
+	service      domain.UserService
+	tokenService domain.TokenService
 }
 
 func NewAuthHandler(
 	service domain.UserService,
+	tokenService domain.TokenService,
 ) *AuthHandler {
 	return &AuthHandler{
-		service: service,
+		service:      service,
+		tokenService: tokenService,
 	}
 }
 
@@ -31,7 +34,7 @@ func (h *AuthHandler) RegisterUser(
 ) (*authpb.RegisterResponse, error) {
 	in := dto.RegisterInput{
 		Username: req.Username,
-		Email: req.Email,
+		Email:    req.Email,
 		Password: req.Password,
 	}
 
@@ -44,7 +47,7 @@ func (h *AuthHandler) RegisterUser(
 
 		case errors.Is(err, domain.ErrInvalidEmail):
 			return nil, status.Error(codes.InvalidArgument, "Invalid email.")
-		
+
 		default:
 			return nil, status.Error(codes.Internal, "Internal server.")
 		}
@@ -52,7 +55,7 @@ func (h *AuthHandler) RegisterUser(
 
 	response := authpb.RegisterResponse{
 		UserId: result.UserID,
-		Email: result.Email,
+		Email:  result.Email,
 	}
 
 	return &response, nil
@@ -63,9 +66,9 @@ func (h *AuthHandler) RegisterAdmin(
 	req *authpb.RegisterAdminRequest,
 ) (*authpb.RegisterResponse, error) {
 	in := dto.RegisterAdminInput{
-		Username: req.Username,
-		Email: req.Email,
-		Password: req.Password,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  req.Password,
 		AdminCode: req.AdminCode,
 	}
 
@@ -78,7 +81,7 @@ func (h *AuthHandler) RegisterAdmin(
 
 		case errors.Is(err, domain.ErrInvalidEmail):
 			return nil, status.Error(codes.InvalidArgument, "Invalid email.")
-		
+
 		default:
 			return nil, status.Error(codes.Internal, "Internal server.")
 		}
@@ -86,7 +89,7 @@ func (h *AuthHandler) RegisterAdmin(
 
 	response := authpb.RegisterResponse{
 		UserId: result.UserID,
-		Email: result.Email,
+		Email:  result.Email,
 	}
 
 	return &response, nil
@@ -98,7 +101,7 @@ func (h *AuthHandler) RegisterCourier(
 ) (*authpb.RegisterResponse, error) {
 	in := dto.RegisterInput{
 		Username: req.Username,
-		Email: req.Email,
+		Email:    req.Email,
 		Password: req.Password,
 	}
 
@@ -111,7 +114,7 @@ func (h *AuthHandler) RegisterCourier(
 
 		case errors.Is(err, domain.ErrInvalidEmail):
 			return nil, status.Error(codes.InvalidArgument, "Invalid email.")
-		
+
 		default:
 			return nil, status.Error(codes.Internal, "Internal server.")
 		}
@@ -119,7 +122,7 @@ func (h *AuthHandler) RegisterCourier(
 
 	response := authpb.RegisterResponse{
 		UserId: result.UserID,
-		Email: result.Email,
+		Email:  result.Email,
 	}
 
 	return &response, nil
@@ -130,7 +133,7 @@ func (h *AuthHandler) LoginUser(
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
 	in := dto.LoginInput{
-		Email: req.Email,
+		Email:    req.Email,
 		Password: req.Password,
 	}
 
@@ -147,7 +150,7 @@ func (h *AuthHandler) LoginUser(
 	}
 
 	response := authpb.LoginResponse{
-		AccessToken: result.AccessToken,
+		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	}
 
@@ -159,8 +162,8 @@ func (h *AuthHandler) LoginAdmin(
 	req *authpb.LoginAdminRequest,
 ) (*authpb.LoginResponse, error) {
 	in := dto.LoginAdminInput{
-		Email: req.Email,
-		Password: req.Password,
+		Email:     req.Email,
+		Password:  req.Password,
 		AdminCode: req.AdminCode,
 	}
 
@@ -180,7 +183,7 @@ func (h *AuthHandler) LoginAdmin(
 	}
 
 	response := authpb.LoginResponse{
-		AccessToken: result.AccessToken,
+		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	}
 
@@ -192,7 +195,7 @@ func (h *AuthHandler) LoginCourier(
 	req *authpb.LoginRequest,
 ) (*authpb.LoginResponse, error) {
 	in := dto.LoginInput{
-		Email: req.Email,
+		Email:    req.Email,
 		Password: req.Password,
 	}
 
@@ -209,7 +212,7 @@ func (h *AuthHandler) LoginCourier(
 	}
 
 	response := authpb.LoginResponse{
-		AccessToken: result.AccessToken,
+		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	}
 
@@ -230,9 +233,27 @@ func (h *AuthHandler) Refresh(
 	}
 
 	res := authpb.RefreshResponse{
-		AccessToken: result.AccessToken,
+		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 	}
 
 	return &res, nil
+}
+
+func (h *AuthHandler) ValidateAccessToken(
+	ctx context.Context,
+	req *authpb.ValidateRequest,
+) (*authpb.ValidateResponse, error) {
+	userID, role, err := h.tokenService.ValidateAccessToken(req.AccessToken)
+
+	if err != nil {
+		return nil, status.Error(
+			codes.Unauthenticated, "Invalid access token.",
+		)
+	}
+
+	return &authpb.ValidateResponse{
+		UserId: userID,
+		Role:   role,
+	}, nil
 }
