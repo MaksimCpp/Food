@@ -9,13 +9,14 @@ import (
 
 	"github.com/MaksimCpp/auth/internal/config"
 	deliverygrpc "github.com/MaksimCpp/auth/internal/delivery/grpc"
-	"github.com/MaksimCpp/auth/internal/delivery/grpc/middleware"
 	jwtservice "github.com/MaksimCpp/auth/internal/infrastructure/jwt_service"
 	repository "github.com/MaksimCpp/auth/internal/repository/postgresql"
 	"github.com/MaksimCpp/auth/internal/service"
 	authpb "github.com/MaksimCpp/auth/proto"
+	"github.com/MaksimCpp/pkg/interceptor"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -43,16 +44,40 @@ func main() {
 		7 * 24 * time.Hour,
 	)
 
+	authConn, err := grpc.NewClient(
+		cfg.GRPCAddress, 
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	authClient := authpb.NewAuthServiceClient(authConn)
+
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
 	userService := service.NewPostgreSQLUserService(cfg.AdminCode, userRepo, tokenService)
 
+	var publicMethods = map[string]struct{}{
+		"/auth.AuthService/RegisterUser":        {},
+		"/auth.AuthService/RegisterAdmin":       {},
+		"/auth.AuthService/LoginUser":           {},
+		"/auth.AuthService/LoginAdmin":          {},
+		"/auth.AuthService/LoginCourier":        {},
+		"/auth.AuthService/Refresh":             {},
+		"/auth.AuthService/ValidateAccessToken": {},
+	}
+
+	var methodsForAdmin = map[string]struct{} {
+		"/auth.AuthService/RegisterCourier": {},
+	}
+
 	server := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			middleware.AuthInterceptor(tokenService),
-			middleware.RoleInterceptor(),
+			interceptor.AuthInterceptor(authClient, publicMethods),
+			interceptor.RoleInterceptor(methodsForAdmin),
 		),
 	)
-	handler := deliverygrpc.NewAuthHandler(userService)
+	handler := deliverygrpc.NewAuthHandler(userService, tokenService)
 	authpb.RegisterAuthServiceServer(server, handler)
 
 	err = server.Serve(lis)

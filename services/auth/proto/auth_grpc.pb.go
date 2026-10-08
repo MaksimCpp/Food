@@ -19,13 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_RegisterUser_FullMethodName    = "/auth.AuthService/RegisterUser"
-	AuthService_RegisterAdmin_FullMethodName   = "/auth.AuthService/RegisterAdmin"
-	AuthService_RegisterCourier_FullMethodName = "/auth.AuthService/RegisterCourier"
-	AuthService_LoginUser_FullMethodName       = "/auth.AuthService/LoginUser"
-	AuthService_LoginAdmin_FullMethodName      = "/auth.AuthService/LoginAdmin"
-	AuthService_LoginCourier_FullMethodName    = "/auth.AuthService/LoginCourier"
-	AuthService_Refresh_FullMethodName         = "/auth.AuthService/Refresh"
+	AuthService_RegisterUser_FullMethodName        = "/auth.AuthService/RegisterUser"
+	AuthService_RegisterAdmin_FullMethodName       = "/auth.AuthService/RegisterAdmin"
+	AuthService_RegisterCourier_FullMethodName     = "/auth.AuthService/RegisterCourier"
+	AuthService_LoginUser_FullMethodName           = "/auth.AuthService/LoginUser"
+	AuthService_LoginAdmin_FullMethodName          = "/auth.AuthService/LoginAdmin"
+	AuthService_LoginCourier_FullMethodName        = "/auth.AuthService/LoginCourier"
+	AuthService_Refresh_FullMethodName             = "/auth.AuthService/Refresh"
+	AuthService_ValidateAccessToken_FullMethodName = "/auth.AuthService/ValidateAccessToken"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -39,6 +40,7 @@ type AuthServiceClient interface {
 	LoginAdmin(ctx context.Context, in *LoginAdminRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	LoginCourier(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
+	ValidateAccessToken(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
 }
 
 type authServiceClient struct {
@@ -119,6 +121,16 @@ func (c *authServiceClient) Refresh(ctx context.Context, in *RefreshRequest, opt
 	return out, nil
 }
 
+func (c *authServiceClient) ValidateAccessToken(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateResponse)
+	err := c.cc.Invoke(ctx, AuthService_ValidateAccessToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type AuthServiceServer interface {
 	LoginAdmin(context.Context, *LoginAdminRequest) (*LoginResponse, error)
 	LoginCourier(context.Context, *LoginRequest) (*LoginResponse, error)
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
+	ValidateAccessToken(context.Context, *ValidateRequest) (*ValidateResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedAuthServiceServer) LoginCourier(context.Context, *LoginReques
 }
 func (UnimplementedAuthServiceServer) Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Refresh not implemented")
+}
+func (UnimplementedAuthServiceServer) ValidateAccessToken(context.Context, *ValidateRequest) (*ValidateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateAccessToken not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -308,6 +324,24 @@ func _AuthService_Refresh_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ValidateAccessToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ValidateAccessToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ValidateAccessToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ValidateAccessToken(ctx, req.(*ValidateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Refresh",
 			Handler:    _AuthService_Refresh_Handler,
+		},
+		{
+			MethodName: "ValidateAccessToken",
+			Handler:    _AuthService_ValidateAccessToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
