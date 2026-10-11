@@ -1,31 +1,28 @@
-package middleware
+package interceptor
 
 import (
 	"context"
 	"strings"
 
-	"github.com/MaksimCpp/auth/internal/authcontext"
-	"github.com/MaksimCpp/auth/internal/domain"
+	"github.com/MaksimCpp/pkg/authcontext"
+
+	authpb "github.com/MaksimCpp/auth/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-var publicMethods = map[string]struct{}{
-	"/auth.AuthService/RegisterUser":  {},
-	"/auth.AuthService/RegisterAdmin": {},
-	"/auth.AuthService/LoginUser":     {},
-	"/auth.AuthService/LoginAdmin":    {},
-	"/auth.AuthService/LoginCourier":  {},
-	"/auth.AuthService/Refresh":       {},
-}
+const (
+	RoleAdmin   string = "admin"
+	// RoleUser    string = "user"
+	// RoleCourier string = "courier"
+)
 
-var methodsForAdmin = map[string]struct{} {
-	"/auth.AuthService/RegisterCourier": {},
-}
-
-func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerInterceptor {
+func AuthInterceptor(
+	authClient authpb.AuthServiceClient,
+	publicMethods map[string]struct{},
+) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -71,7 +68,11 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 			)
 		}
 
-		userID, role, err := tokenService.ValidateAccessToken(token)
+		tokenRequest := authpb.ValidateRequest{
+			AccessToken: token,
+		}
+
+		tokenResponse, err := authClient.ValidateAccessToken(ctx, &tokenRequest)
 		if err != nil {
 			return nil, status.Error(
 				codes.Unauthenticated, "Invalid access token",
@@ -81,19 +82,19 @@ func AuthInterceptor(tokenService domain.TokenService) grpc.UnaryServerIntercept
 		ctx = context.WithValue(
 			ctx,
 			authcontext.UserIDKey,
-			userID,
+			tokenResponse.UserId,
 		)
 
 		ctx = context.WithValue(
 			ctx,
 			authcontext.RoleKey,
-			role,
+			tokenResponse.Role,
 		)
 		return handler(ctx, req)
 	}
 }
 
-func RoleInterceptor() grpc.UnaryServerInterceptor {
+func RoleInterceptor(methodsForAdmin map[string]struct{}) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context, 
 		req any, 
@@ -112,7 +113,7 @@ func RoleInterceptor() grpc.UnaryServerInterceptor {
 			)
 		}
 
-		if role != domain.RoleAdmin {
+		if role != RoleAdmin {
 			return nil, status.Error(
 				codes.PermissionDenied, "Permission denied",
 			)

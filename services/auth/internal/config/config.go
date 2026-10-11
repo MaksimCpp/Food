@@ -11,6 +11,7 @@ type AuthConfig struct {
 	DBUrl        string
 
 	GRPCPort     string
+	GRPCAddress  string
 	JWTSecretKey string
 
 	AdminCode    string
@@ -33,6 +34,7 @@ func Load() *AuthConfig {
 		),
 
 		GRPCPort: os.Getenv("GRPC_AUTH_PORT"),
+		GRPCAddress: os.Getenv("GRPC_AUTH_ADDRESS"),
 		JWTSecretKey: os.Getenv("JWT_SECRET_KEY"),
 		AdminCode: os.Getenv("ADMIN_CODE"),
 	}

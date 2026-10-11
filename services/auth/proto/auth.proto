@@ -25,6 +25,9 @@ service AuthService {
 
     rpc Refresh(RefreshRequest)
         returns (RefreshResponse);
+
+    rpc ValidateAccessToken(ValidateRequest)
+        returns (ValidateResponse);
 }
 
 message RegisterRequest {
@@ -69,4 +72,13 @@ message RefreshRequest {
 message RefreshResponse {
     string access_token = 1;
     string refresh_token = 2;
+}
+
+message ValidateRequest {
+    string access_token = 1;
+}
+
+message ValidateResponse {
+    int64 user_id = 1;
+    string role = 2;
 }

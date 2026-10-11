@@ -1,12 +1,6 @@
 go 1.25.0
 
 use (
-	./services/analytics
+	./pkg
 	./services/auth
-	./services/gateway
-	./services/notification
-	./services/order
-	./services/restaurant
-	./services/status
-	./services/user
 )
