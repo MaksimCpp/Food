@@ -6,6 +6,10 @@ type CreateProductInput struct {
 	Price       int
 	ImageName   string
 	IsAvailable bool
+
+	FileBytes   []byte
+	FileSize    int64
+	FileType    string
 }
 
 type CreateProductOutput struct {
