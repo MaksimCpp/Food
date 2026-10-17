@@ -21,9 +21,9 @@ func (repo *PostgreSQLProductRepository) Create(
 	ctx context.Context, product *domain.Product,
 ) (*domain.Product, error) {
 	query := `
-		INSERT INTO products (name, description, price, image_url, is_available)
+		INSERT INTO products (name, description, price, image_key, is_available)
 		VALUES (%1, %2, %3, %4, %5)
-		RETURNING name, description, price, image_url, is_available;
+		RETURNING name, description, price, image_key, is_available;
 	`
 
 	var result domain.Product
@@ -34,13 +34,13 @@ func (repo *PostgreSQLProductRepository) Create(
 		product.Name,
 		product.Description,
 		product.Price,
-		product.ImageUrl,
+		product.ImageKey,
 		product.IsAvailable,
 	).Scan(
 		&result.Name,
 		&result.Description,
 		&result.Price,
-		&result.ImageUrl,
+		&result.ImageKey,
 		&result.IsAvailable,
 	)
 
@@ -55,7 +55,7 @@ func (repo *PostgreSQLProductRepository) Get(
 	ctx context.Context, id int64,
 ) (*domain.Product, error) {
 	query := `
-		SELECT id, name, description, price, image_url, is_available
+		SELECT id, name, description, price, image_key, is_available
 		FROM products
 		WHERE id = %1;
 	`
@@ -71,7 +71,7 @@ func (repo *PostgreSQLProductRepository) Get(
 		&result.Name,
 		&result.Description,
 		&result.Price,
-		&result.ImageUrl,
+		&result.ImageKey,
 		&result.IsAvailable,
 	)
 
@@ -86,7 +86,7 @@ func (repo *PostgreSQLProductRepository) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*domain.Product, error) {
 	query := `
-		SELECT id, name, description, price, image_url, is_available
+		SELECT id, name, description, price, image_key, is_available
 		FROM products
 		LIMIT %1
 		OFFSET %2;
@@ -115,7 +115,7 @@ func (repo *PostgreSQLProductRepository) List(
 			&result.Name,
 			&result.Description,
 			&result.Price,
-			&result.ImageUrl,
+			&result.ImageKey,
 			&result.IsAvailable,
 		)
 
@@ -139,12 +139,12 @@ func (repo *PostgreSQLProductRepository) Update(
 			name = %1,
 			description = %2,
 			price = %3,
-			image_url = %4,
+			image_key = %4,
 			is_available = %5
 		WHERE
 			id = %6
 		RETURNING
-			id, name, description, price, image_url, is_available;
+			id, name, description, price, image_key, is_available;
 	`
 
 	var result domain.Product
@@ -155,7 +155,7 @@ func (repo *PostgreSQLProductRepository) Update(
 		newProduct.Name,
 		newProduct.Description,
 		newProduct.Price,
-		newProduct.ImageUrl,
+		newProduct.ImageKey,
 		newProduct.IsAvailable,
 		id,
 	).Scan(
@@ -163,7 +163,7 @@ func (repo *PostgreSQLProductRepository) Update(
 		&result.Name,
 		&result.Description,
 		&result.Price,
-		&result.ImageUrl,
+		&result.ImageKey,
 		&result.IsAvailable,
 	)
 

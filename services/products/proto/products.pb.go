@@ -27,8 +27,10 @@ type CreateProductRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,3,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,4,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageName     string                 `protobuf:"bytes,4,opt,name=image_name,json=imageName,proto3" json:"image_name,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,5,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
+	FileType      string                 `protobuf:"bytes,6,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
+	FileBytes     int64                  `protobuf:"varint,7,opt,name=file_bytes,json=fileBytes,proto3" json:"file_bytes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -84,9 +86,9 @@ func (x *CreateProductRequest) GetPrice() int64 {
 	return 0
 }
 
-func (x *CreateProductRequest) GetImageUrl() string {
+func (x *CreateProductRequest) GetImageName() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageName
 	}
 	return ""
 }
@@ -98,13 +100,27 @@ func (x *CreateProductRequest) GetIsAvailable() bool {
 	return false
 }
 
+func (x *CreateProductRequest) GetFileType() string {
+	if x != nil {
+		return x.FileType
+	}
+	return ""
+}
+
+func (x *CreateProductRequest) GetFileBytes() int64 {
+	if x != nil {
+		return x.FileBytes
+	}
+	return 0
+}
+
 type CreateProductResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageKey      string                 `protobuf:"bytes,5,opt,name=image_key,json=imageKey,proto3" json:"image_key,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,6,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -168,9 +184,9 @@ func (x *CreateProductResponse) GetPrice() int64 {
 	return 0
 }
 
-func (x *CreateProductResponse) GetImageUrl() string {
+func (x *CreateProductResponse) GetImageKey() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageKey
 	}
 	return ""
 }
@@ -232,7 +248,7 @@ type GetProductResponse struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageKey      string                 `protobuf:"bytes,5,opt,name=image_key,json=imageKey,proto3" json:"image_key,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,6,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -296,9 +312,9 @@ func (x *GetProductResponse) GetPrice() int64 {
 	return 0
 }
 
-func (x *GetProductResponse) GetImageUrl() string {
+func (x *GetProductResponse) GetImageKey() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageKey
 	}
 	return ""
 }
@@ -312,8 +328,8 @@ func (x *GetProductResponse) GetIsAvailable() bool {
 
 type ListProductsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         int64                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        int64                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         uint32                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        uint32                 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -348,14 +364,14 @@ func (*ListProductsRequest) Descriptor() ([]byte, []int) {
 	return file_products_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ListProductsRequest) GetLimit() int64 {
+func (x *ListProductsRequest) GetLimit() uint32 {
 	if x != nil {
 		return x.Limit
 	}
 	return 0
 }
 
-func (x *ListProductsRequest) GetOffset() int64 {
+func (x *ListProductsRequest) GetOffset() uint32 {
 	if x != nil {
 		return x.Offset
 	}
@@ -366,7 +382,7 @@ type ListProductsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Price         int64                  `protobuf:"varint,2,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,3,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageKey      string                 `protobuf:"bytes,3,opt,name=image_key,json=imageKey,proto3" json:"image_key,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,4,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -416,9 +432,9 @@ func (x *ListProductsResponse) GetPrice() int64 {
 	return 0
 }
 
-func (x *ListProductsResponse) GetImageUrl() string {
+func (x *ListProductsResponse) GetImageKey() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageKey
 	}
 	return ""
 }
@@ -436,7 +452,7 @@ type UpdateProductRequest struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageKey      string                 `protobuf:"bytes,5,opt,name=image_key,json=imageKey,proto3" json:"image_key,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,6,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -500,9 +516,9 @@ func (x *UpdateProductRequest) GetPrice() int64 {
 	return 0
 }
 
-func (x *UpdateProductRequest) GetImageUrl() string {
+func (x *UpdateProductRequest) GetImageKey() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageKey
 	}
 	return ""
 }
@@ -520,7 +536,7 @@ type UpdateProductResponse struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Price         int64                  `protobuf:"varint,4,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      string                 `protobuf:"bytes,5,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	ImageKey      string                 `protobuf:"bytes,5,opt,name=image_key,json=imageKey,proto3" json:"image_key,omitempty"`
 	IsAvailable   bool                   `protobuf:"varint,6,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -584,9 +600,9 @@ func (x *UpdateProductResponse) GetPrice() int64 {
 	return 0
 }
 
-func (x *UpdateProductResponse) GetImageUrl() string {
+func (x *UpdateProductResponse) GetImageKey() string {
 	if x != nil {
-		return x.ImageUrl
+		return x.ImageKey
 	}
 	return ""
 }
@@ -598,27 +614,27 @@ func (x *UpdateProductResponse) GetIsAvailable() bool {
 	return false
 }
 
-type DeleteProductReqest struct {
+type DeleteProductRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteProductReqest) Reset() {
-	*x = DeleteProductReqest{}
+func (x *DeleteProductRequest) Reset() {
+	*x = DeleteProductRequest{}
 	mi := &file_products_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteProductReqest) String() string {
+func (x *DeleteProductRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteProductReqest) ProtoMessage() {}
+func (*DeleteProductRequest) ProtoMessage() {}
 
-func (x *DeleteProductReqest) ProtoReflect() protoreflect.Message {
+func (x *DeleteProductRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_products_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -630,12 +646,12 @@ func (x *DeleteProductReqest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteProductReqest.ProtoReflect.Descriptor instead.
-func (*DeleteProductReqest) Descriptor() ([]byte, []int) {
+// Deprecated: Use DeleteProductRequest.ProtoReflect.Descriptor instead.
+func (*DeleteProductRequest) Descriptor() ([]byte, []int) {
 	return file_products_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *DeleteProductReqest) GetId() int64 {
+func (x *DeleteProductRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -646,19 +662,23 @@ var File_products_proto protoreflect.FileDescriptor
 
 const file_products_proto_rawDesc = "" +
 	"\n" +
-	"\x0eproducts.proto\x12\bproducts\x1a\x1bgoogle/protobuf/empty.proto\"\xa2\x01\n" +
+	"\x0eproducts.proto\x12\bproducts\x1a\x1bgoogle/protobuf/empty.proto\"\xe0\x01\n" +
 	"\x14CreateProductRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05price\x18\x03 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x04 \x01(\tR\bimageUrl\x12!\n" +
-	"\fis_available\x18\x05 \x01(\bR\visAvailable\"\xb3\x01\n" +
+	"\x05price\x18\x03 \x01(\x03R\x05price\x12\x1d\n" +
+	"\n" +
+	"image_name\x18\x04 \x01(\tR\timageName\x12!\n" +
+	"\fis_available\x18\x05 \x01(\bR\visAvailable\x12\x1b\n" +
+	"\tfile_type\x18\x06 \x01(\tR\bfileType\x12\x1d\n" +
+	"\n" +
+	"file_bytes\x18\a \x01(\x03R\tfileBytes\"\xb3\x01\n" +
 	"\x15CreateProductResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x05 \x01(\tR\bimageUrl\x12!\n" +
+	"\timage_key\x18\x05 \x01(\tR\bimageKey\x12!\n" +
 	"\fis_available\x18\x06 \x01(\bR\visAvailable\"#\n" +
 	"\x11GetProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"\xb0\x01\n" +
@@ -667,39 +687,39 @@ const file_products_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x05 \x01(\tR\bimageUrl\x12!\n" +
+	"\timage_key\x18\x05 \x01(\tR\bimageKey\x12!\n" +
 	"\fis_available\x18\x06 \x01(\bR\visAvailable\"C\n" +
 	"\x13ListProductsRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\x03R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x03R\x06offset\"\x80\x01\n" +
+	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\"\x80\x01\n" +
 	"\x14ListProductsResponse\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x03 \x01(\tR\bimageUrl\x12!\n" +
+	"\timage_key\x18\x03 \x01(\tR\bimageKey\x12!\n" +
 	"\fis_available\x18\x04 \x01(\bR\visAvailable\"\xb2\x01\n" +
 	"\x14UpdateProductRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x05 \x01(\tR\bimageUrl\x12!\n" +
+	"\timage_key\x18\x05 \x01(\tR\bimageKey\x12!\n" +
 	"\fis_available\x18\x06 \x01(\bR\visAvailable\"\xb3\x01\n" +
 	"\x15UpdateProductResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\x03R\x05price\x12\x1b\n" +
-	"\timage_url\x18\x05 \x01(\tR\bimageUrl\x12!\n" +
-	"\fis_available\x18\x06 \x01(\bR\visAvailable\"%\n" +
-	"\x13DeleteProductReqest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id2\x95\x03\n" +
+	"\timage_key\x18\x05 \x01(\tR\bimageKey\x12!\n" +
+	"\fis_available\x18\x06 \x01(\bR\visAvailable\"&\n" +
+	"\x14DeleteProductRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id2\x96\x03\n" +
 	"\x0fProductsService\x12P\n" +
 	"\rCreateProduct\x12\x1e.products.CreateProductRequest\x1a\x1f.products.CreateProductResponse\x12G\n" +
 	"\n" +
 	"GetProduct\x12\x1b.products.GetProductRequest\x1a\x1c.products.GetProductResponse\x12M\n" +
 	"\fListProducts\x12\x1d.products.ListProductsRequest\x1a\x1e.products.ListProductsResponse\x12P\n" +
-	"\rUpdateProduct\x12\x1e.products.UpdateProductRequest\x1a\x1f.products.UpdateProductResponse\x12F\n" +
-	"\rDeleteProduct\x12\x1d.products.DeleteProductReqest\x1a\x16.google.protobuf.EmptyB/Z-github.com/MaksimCpp/Food/products/productspbb\x06proto3"
+	"\rUpdateProduct\x12\x1e.products.UpdateProductRequest\x1a\x1f.products.UpdateProductResponse\x12G\n" +
+	"\rDeleteProduct\x12\x1e.products.DeleteProductRequest\x1a\x16.google.protobuf.EmptyB/Z-github.com/MaksimCpp/Food/products/productspbb\x06proto3"
 
 var (
 	file_products_proto_rawDescOnce sync.Once
@@ -723,7 +743,7 @@ var file_products_proto_goTypes = []any{
 	(*ListProductsResponse)(nil),  // 5: products.ListProductsResponse
 	(*UpdateProductRequest)(nil),  // 6: products.UpdateProductRequest
 	(*UpdateProductResponse)(nil), // 7: products.UpdateProductResponse
-	(*DeleteProductReqest)(nil),   // 8: products.DeleteProductReqest
+	(*DeleteProductRequest)(nil),  // 8: products.DeleteProductRequest
 	(*emptypb.Empty)(nil),         // 9: google.protobuf.Empty
 }
 var file_products_proto_depIdxs = []int32{
@@ -731,7 +751,7 @@ var file_products_proto_depIdxs = []int32{
 	2, // 1: products.ProductsService.GetProduct:input_type -> products.GetProductRequest
 	4, // 2: products.ProductsService.ListProducts:input_type -> products.ListProductsRequest
 	6, // 3: products.ProductsService.UpdateProduct:input_type -> products.UpdateProductRequest
-	8, // 4: products.ProductsService.DeleteProduct:input_type -> products.DeleteProductReqest
+	8, // 4: products.ProductsService.DeleteProduct:input_type -> products.DeleteProductRequest
 	1, // 5: products.ProductsService.CreateProduct:output_type -> products.CreateProductResponse
 	3, // 6: products.ProductsService.GetProduct:output_type -> products.GetProductResponse
 	5, // 7: products.ProductsService.ListProducts:output_type -> products.ListProductsResponse

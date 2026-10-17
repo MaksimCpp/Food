@@ -5,6 +5,6 @@ type Product struct {
 	Name        string
 	Description string
 	Price       int
-	ImageUrl    string
+	ImageKey    string
 	IsAvailable bool
 }
