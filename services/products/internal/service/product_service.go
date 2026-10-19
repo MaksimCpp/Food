@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// 	Get(ctx context.Context, id int64) (*dto.GetProductOutput, error)
 // 	List(ctx context.Context, limit int, offset int) ([]*dto.ListProductsOutput, error)
 // 	Update(ctx context.Context, newProduct *Product, id int64) (*dto.UpdateProductOutput, error)
 // 	Delete(ctx context.Context, id int64) error
@@ -56,6 +55,26 @@ func (s *PostgreSQLProductService) Create(
 
 	out := dto.CreateProductOutput{
 		ID: result.ID,
+		Name: result.Name,
+		Description: result.Description,
+		Price: result.Price,
+		ImageKey: result.ImageKey,
+		IsAvailable: result.IsAvailable,
+	}
+
+	return &out, nil
+}
+
+func (s *PostgreSQLProductService) Get(
+	ctx context.Context, id int64,
+) (*dto.GetProductOutput, error) {
+	result, err := s.repo.Get(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	out := dto.GetProductOutput{
 		Name: result.Name,
 		Description: result.Description,
 		Price: result.Price,
