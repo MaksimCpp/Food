@@ -173,6 +173,9 @@ func (repo *PostgreSQLProductRepository) Update(
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrProductNotFound
+		}
 		return nil, err
 	}
 
@@ -198,7 +201,7 @@ func (repo *PostgreSQLProductRepository) Delete(
 	}
 
 	if ct.RowsAffected() == 0 {
-		return domain.ErrNoRowsAffected
+		return domain.ErrProductNotFound
 	}
 
 	return nil

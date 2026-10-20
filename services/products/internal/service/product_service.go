@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// 	List(ctx context.Context, limit int, offset int) ([]*dto.ListProductsOutput, error)
-// 	Update(ctx context.Context, newProduct *Product, id int64) (*dto.UpdateProductOutput, error)
-// 	Delete(ctx context.Context, id int64) error
-
 type PostgreSQLProductService struct {
 	repo    domain.ProductRepository
 	storage domain.FileStorage
@@ -83,4 +79,63 @@ func (s *PostgreSQLProductService) Get(
 	}
 
 	return &out, nil
+}
+
+func (s *PostgreSQLProductService) List(
+	ctx context.Context, limit int, offset int,
+) ([]*dto.ListProductsOutput, error) {
+	result, err := s.repo.List(ctx, limit, offset)
+
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*dto.ListProductsOutput, 0, len(result))
+
+	for _, product := range result {
+		out = append(out, &dto.ListProductsOutput{
+			Name: product.Name,
+			Price: product.Price,
+			ImageKey: product.ImageKey,
+			IsAvailable: product.IsAvailable,
+		})
+	}
+
+	return out, nil
+}
+
+func (s *PostgreSQLProductService) Update(
+	ctx context.Context, newProduct *domain.Product, id int64,
+) (*dto.UpdateProductOutput, error) {
+
+	product := domain.Product{
+		Name: newProduct.Name,
+		Description: newProduct.Description,
+		Price: newProduct.Price,
+		ImageKey: newProduct.ImageKey,
+		IsAvailable: newProduct.IsAvailable,
+	}
+
+	result, err := s.repo.Update(
+		ctx, &product,id,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	out := dto.UpdateProductOutput{
+		ID: result.ID,
+		Name: result.Name,
+		Description: result.Description,
+		Price: result.Price,
+		ImageKey: result.ImageKey,
+		IsAvailable: result.IsAvailable,
+	}
+
+	return &out, nil
+}
+
+func (s *PostgreSQLProductService) Delete(ctx context.Context, id int64) error {
+	return s.repo.Delete(ctx, id)
 }
