@@ -2,7 +2,7 @@ package domain
 
 import "context"
 
-type ProductRepository interface {
+type ProductsRepository interface {
 	Create(ctx context.Context, product *Product) (*Product, error)
 	Get(ctx context.Context, id int64) (*Product, error)
 	List(ctx context.Context, limit int, offset int) ([]*Product, error)

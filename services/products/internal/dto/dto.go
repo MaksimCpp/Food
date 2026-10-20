@@ -37,6 +37,15 @@ type ListProductsOutput struct {
 	IsAvailable bool
 }
 
+type UpdateProductIntput struct {
+	ID          int64
+	Name        string
+	Description string
+	Price       int
+	ImageKey    string
+	IsAvailable bool
+}
+
 type UpdateProductOutput struct {
 	ID          int64
 	Name        string

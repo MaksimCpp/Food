@@ -9,17 +9,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PostgreSQLProductRepository struct {
+type PostgreSQLProductsRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewPostgreSQLProductRepository(pool *pgxpool.Pool) *PostgreSQLProductRepository {
-	return &PostgreSQLProductRepository{
+func NewPostgreSQLProductsRepository(pool *pgxpool.Pool) *PostgreSQLProductsRepository {
+	return &PostgreSQLProductsRepository{
 		pool: pool,
 	}
 }
 
-func (repo *PostgreSQLProductRepository) Create(
+func (repo *PostgreSQLProductsRepository) Create(
 	ctx context.Context, product *domain.Product,
 ) (*domain.Product, error) {
 	query := `
@@ -53,7 +53,7 @@ func (repo *PostgreSQLProductRepository) Create(
 	return &result, nil
 }
 
-func (repo *PostgreSQLProductRepository) Get(
+func (repo *PostgreSQLProductsRepository) Get(
 	ctx context.Context, id int64,
 ) (*domain.Product, error) {
 	query := `
@@ -87,7 +87,7 @@ func (repo *PostgreSQLProductRepository) Get(
 	return &result, nil
 }
 
-func (repo *PostgreSQLProductRepository) List(
+func (repo *PostgreSQLProductsRepository) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*domain.Product, error) {
 	query := `
@@ -134,7 +134,7 @@ func (repo *PostgreSQLProductRepository) List(
 	return results, nil
 }
 
-func (repo *PostgreSQLProductRepository) Update(
+func (repo *PostgreSQLProductsRepository) Update(
 	ctx context.Context, newProduct *domain.Product, id int64,
 ) (*domain.Product, error) {
 	query := `
@@ -182,7 +182,7 @@ func (repo *PostgreSQLProductRepository) Update(
 	return &result, nil
 }
 
-func (repo *PostgreSQLProductRepository) Delete(
+func (repo *PostgreSQLProductsRepository) Delete(
 	ctx context.Context, id int64,
 ) error {
 	query := `

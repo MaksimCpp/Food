@@ -9,21 +9,21 @@ import (
 	"github.com/google/uuid"
 )
 
-type PostgreSQLProductService struct {
-	repo    domain.ProductRepository
+type PostgreSQLProductsService struct {
+	repo    domain.ProductsRepository
 	storage domain.FileStorage
 }
 
-func NewPostgreSQLProductService(
-	repo domain.ProductRepository, storage domain.FileStorage,
-) *PostgreSQLProductService {
-	return &PostgreSQLProductService{
+func NewPostgreSQLProductsService(
+	repo domain.ProductsRepository, storage domain.FileStorage,
+) *PostgreSQLProductsService {
+	return &PostgreSQLProductsService{
 		repo: repo,
 		storage: storage,
 	}
 }
 
-func (s *PostgreSQLProductService) Create(
+func (s *PostgreSQLProductsService) Create(
 	ctx context.Context, in *dto.CreateProductInput,
 ) (*dto.CreateProductOutput, error) {
 	imageUuid := uuid.New().String()
@@ -61,7 +61,7 @@ func (s *PostgreSQLProductService) Create(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductService) Get(
+func (s *PostgreSQLProductsService) Get(
 	ctx context.Context, id int64,
 ) (*dto.GetProductOutput, error) {
 	result, err := s.repo.Get(ctx, id)
@@ -81,7 +81,7 @@ func (s *PostgreSQLProductService) Get(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductService) List(
+func (s *PostgreSQLProductsService) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*dto.ListProductsOutput, error) {
 	result, err := s.repo.List(ctx, limit, offset)
@@ -104,8 +104,8 @@ func (s *PostgreSQLProductService) List(
 	return out, nil
 }
 
-func (s *PostgreSQLProductService) Update(
-	ctx context.Context, newProduct *domain.Product, id int64,
+func (s *PostgreSQLProductsService) Update(
+	ctx context.Context, newProduct *dto.UpdateProductIntput, id int64,
 ) (*dto.UpdateProductOutput, error) {
 
 	product := domain.Product{
@@ -136,6 +136,6 @@ func (s *PostgreSQLProductService) Update(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductService) Delete(ctx context.Context, id int64) error {
+func (s *PostgreSQLProductsService) Delete(ctx context.Context, id int64) error {
 	return s.repo.Delete(ctx, id)
 }
