@@ -15,7 +15,9 @@ type MinioStorage struct {
 	bucketName string
 }
 
-func NewMinioStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) *MinioStorage {
+func NewMinioStorage(
+	endpoint, accessKey, secretKey, bucketName string, useSSL bool,
+) (*MinioStorage, error) {
 	client, err := minio.New(
 		endpoint,
 		&minio.Options{
@@ -25,13 +27,13 @@ func NewMinioStorage(endpoint, accessKey, secretKey, bucketName string, useSSL b
 	)
 
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return &MinioStorage{
 		client: client,
 		bucketName: bucketName,
-	}
+	}, nil
 }
 
 func (s *MinioStorage) Upload(

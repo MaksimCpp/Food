@@ -30,6 +30,31 @@ services:
     ports:
       - "${REDIS_PORT}:6379"
 
+  minio:
+    image: minio/minio:latest
+
+    container_name: minio
+
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    ports:
+      - "${MINIO_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+
+    volumes:
+      - minio_data:/data
+
+    healthcheck:
+      test:
+        ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   kafka:
     image: apache/kafka:3.9.0
 
@@ -209,6 +234,9 @@ services:
       postgres:
         condition: service_healthy
 
+      minio:
+        condition: service_healthy
+
       # kafka:
       #   condition: service_healthy
 
@@ -217,3 +245,4 @@ services:
 
 volumes:
   postgres_data:
+  minio_data:

@@ -18,6 +18,12 @@ type ProductsHandler struct {
 	service domain.ProductsService
 }
 
+func NewProductsHandler(service domain.ProductsService) *ProductsHandler {
+	return &ProductsHandler{
+		service: service,
+	}
+}
+
 func (h *ProductsHandler) CreateProduct(
 	ctx context.Context, req *productspb.CreateProductRequest,
 ) (*productspb.CreateProductResponse, error) {
