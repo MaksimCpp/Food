@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	authpb "github.com/MaksimCpp/auth/proto"
 	"github.com/MaksimCpp/pkg/interceptor"
 	"github.com/MaksimCpp/products/internal/config"
 	deliverygrpc "github.com/MaksimCpp/products/internal/delivery/grpc"
 	miniostorage "github.com/MaksimCpp/products/internal/infrastructure/minio"
+	rediscache "github.com/MaksimCpp/products/internal/infrastructure/redis"
 	repository "github.com/MaksimCpp/products/internal/repository/postgresql"
 	"github.com/MaksimCpp/products/internal/service"
 	productspb "github.com/MaksimCpp/products/proto"
@@ -37,13 +39,14 @@ func main() {
 		cfg.MinioSecretKey,
 		cfg.MinioBucket, cfg.MinioUseSSL,
 	)
+	cache := rediscache.NewRedisCache(cfg.RedisAddress, time.Duration(cfg.RedisTTLMinutes))
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	productsService := service.NewPostgreSQLProductsService(
-		productsRepo, minioStorage,
+		productsRepo, minioStorage, cache,
 	)
 
 	handler := deliverygrpc.NewProductsHandler(productsService)

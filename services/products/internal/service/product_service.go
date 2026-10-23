@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/MaksimCpp/products/internal/domain"
@@ -12,14 +13,16 @@ import (
 type PostgreSQLProductsService struct {
 	repo    domain.ProductsRepository
 	storage domain.FileStorage
+	cache   domain.Cache
 }
 
 func NewPostgreSQLProductsService(
-	repo domain.ProductsRepository, storage domain.FileStorage,
+	repo domain.ProductsRepository, storage domain.FileStorage, cache domain.Cache,
 ) *PostgreSQLProductsService {
 	return &PostgreSQLProductsService{
 		repo: repo,
 		storage: storage,
+		cache: cache,
 	}
 }
 
@@ -44,10 +47,20 @@ func (s *PostgreSQLProductsService) Create(
 	}
 
 	result, err := s.repo.Create(ctx, &product)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	dataForCache, err := json.Marshal(result)
 
 	if err != nil {
 		return nil, err
 	}
+
+	cacheKey := fmt.Sprintf("product_%d", result.ID)
+
+	err = s.cache.Set(ctx, cacheKey, dataForCache)
 
 	out := dto.CreateProductOutput{
 		ID: result.ID,
@@ -64,11 +77,34 @@ func (s *PostgreSQLProductsService) Create(
 func (s *PostgreSQLProductsService) Get(
 	ctx context.Context, id int64,
 ) (*dto.GetProductOutput, error) {
+	key := fmt.Sprintf("product_%d", id)
+
+	data, err := s.cache.Get(ctx, key)
+
+	if err == nil {
+		var product dto.GetProductOutput
+		jsonErr := json.Unmarshal(data, &product)
+
+		if jsonErr != nil {
+			return nil, jsonErr
+		}
+
+		return &product, nil
+	}
+
 	result, err := s.repo.Get(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
+
+	data, err = json.Marshal(result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.cache.Set(ctx, key, data)
 
 	out := dto.GetProductOutput{
 		Name: result.Name,
@@ -81,6 +117,7 @@ func (s *PostgreSQLProductsService) Get(
 	return &out, nil
 }
 
+// Сделать MGet из кеша
 func (s *PostgreSQLProductsService) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*dto.ListProductsOutput, error) {
@@ -124,6 +161,20 @@ func (s *PostgreSQLProductsService) Update(
 		return nil, err
 	}
 
+	data, err := json.Marshal(result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	key := fmt.Sprintf("product_%d", result.ID)
+
+	err = s.cache.Set(ctx, key, data)
+
+	if err != nil {
+		return nil, err
+	}
+
 	out := dto.UpdateProductOutput{
 		ID: result.ID,
 		Name: result.Name,
@@ -137,5 +188,13 @@ func (s *PostgreSQLProductsService) Update(
 }
 
 func (s *PostgreSQLProductsService) Delete(ctx context.Context, id int64) error {
-	return s.repo.Delete(ctx, id)
+	err := s.repo.Delete(ctx, id)
+
+	if err != nil {
+		return nil
+	}
+
+	key := fmt.Sprintf("product_%d", id)
+
+	return s.cache.Delete(ctx, key)
 }
