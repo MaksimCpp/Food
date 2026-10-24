@@ -20,9 +20,9 @@ func NewPostgreSQLProductsService(
 	repo domain.ProductsRepository, storage domain.FileStorage, cache domain.Cache,
 ) *PostgreSQLProductsService {
 	return &PostgreSQLProductsService{
-		repo: repo,
+		repo:    repo,
 		storage: storage,
-		cache: cache,
+		cache:   cache,
 	}
 }
 
@@ -39,15 +39,15 @@ func (s *PostgreSQLProductsService) Create(
 	key, err := s.storage.Upload(ctx, imageKey, in.FileBytes, in.FileSize, in.FileType)
 
 	product := domain.Product{
-		Name: in.Name,
+		Name:        in.Name,
 		Description: in.Description,
-		Price: in.Price,
-		ImageKey: key,
+		Price:       in.Price,
+		ImageKey:    key,
 		IsAvailable: in.IsAvailable,
 	}
 
 	result, err := s.repo.Create(ctx, &product)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +63,11 @@ func (s *PostgreSQLProductsService) Create(
 	err = s.cache.Set(ctx, cacheKey, dataForCache)
 
 	out := dto.CreateProductOutput{
-		ID: result.ID,
-		Name: result.Name,
+		ID:          result.ID,
+		Name:        result.Name,
 		Description: result.Description,
-		Price: result.Price,
-		ImageKey: result.ImageKey,
+		Price:       result.Price,
+		ImageKey:    result.ImageKey,
 		IsAvailable: result.IsAvailable,
 	}
 
@@ -107,17 +107,16 @@ func (s *PostgreSQLProductsService) Get(
 	err = s.cache.Set(ctx, key, data)
 
 	out := dto.GetProductOutput{
-		Name: result.Name,
+		Name:        result.Name,
 		Description: result.Description,
-		Price: result.Price,
-		ImageKey: result.ImageKey,
+		Price:       result.Price,
+		ImageKey:    result.ImageKey,
 		IsAvailable: result.IsAvailable,
 	}
 
 	return &out, nil
 }
 
-// Сделать MGet из кеша
 func (s *PostgreSQLProductsService) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*dto.ListProductsOutput, error) {
@@ -146,9 +145,9 @@ func (s *PostgreSQLProductsService) List(
 
 		for _, product := range result {
 			productOut := dto.ListProductsOutput{
-				Name: product.Name,
-				Price: product.Price,
-				ImageKey: product.ImageKey,
+				Name:        product.Name,
+				Price:       product.Price,
+				ImageKey:    product.ImageKey,
 				IsAvailable: product.IsAvailable,
 			}
 
@@ -173,11 +172,11 @@ func (s *PostgreSQLProductsService) List(
 		}
 
 		postresResultsMap := make(map[int64]*domain.Product)
-	
+
 		for _, product := range postgresResults {
 			postresResultsMap[product.ID] = product
 		}
-	
+
 		for i, res := range cacheResults {
 			if res == nil {
 				currentID := ids[i].ID
@@ -188,23 +187,23 @@ func (s *PostgreSQLProductsService) List(
 				}
 
 				out := dto.ListProductsOutput{
-					Name: product.Name,
-					Price: product.Price,
-					ImageKey: product.ImageKey,
+					Name:        product.Name,
+					Price:       product.Price,
+					ImageKey:    product.ImageKey,
 					IsAvailable: product.IsAvailable,
 				}
 
 				JSONFromProduct, err := json.Marshal(out)
-	
+
 				if err != nil {
 					return nil, err
 				}
-	
+
 				cacheResults[i] = string(JSONFromProduct)
 
 				_ = s.cache.Set(
-					context.WithoutCancel(ctx), 
-					fmt.Sprintf("product_%d", currentID), 
+					context.WithoutCancel(ctx),
+					fmt.Sprintf("product_%d", currentID),
 					JSONFromProduct,
 				)
 			}
@@ -243,15 +242,15 @@ func (s *PostgreSQLProductsService) Update(
 ) (*dto.UpdateProductOutput, error) {
 
 	product := domain.Product{
-		Name: newProduct.Name,
+		Name:        newProduct.Name,
 		Description: newProduct.Description,
-		Price: newProduct.Price,
-		ImageKey: newProduct.ImageKey,
+		Price:       newProduct.Price,
+		ImageKey:    newProduct.ImageKey,
 		IsAvailable: newProduct.IsAvailable,
 	}
 
 	result, err := s.repo.Update(
-		ctx, &product,id,
+		ctx, &product, id,
 	)
 
 	if err != nil {
@@ -273,11 +272,11 @@ func (s *PostgreSQLProductsService) Update(
 	}
 
 	out := dto.UpdateProductOutput{
-		ID: result.ID,
-		Name: result.Name,
+		ID:          result.ID,
+		Name:        result.Name,
 		Description: result.Description,
-		Price: result.Price,
-		ImageKey: result.ImageKey,
+		Price:       result.Price,
+		ImageKey:    result.ImageKey,
 		IsAvailable: result.IsAvailable,
 	}
 
