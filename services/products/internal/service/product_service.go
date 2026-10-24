@@ -121,21 +121,118 @@ func (s *PostgreSQLProductsService) Get(
 func (s *PostgreSQLProductsService) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*dto.ListProductsOutput, error) {
-	result, err := s.repo.List(ctx, limit, offset)
+	ids, err := s.repo.GetIDs(ctx, limit, offset)
 
 	if err != nil {
 		return nil, err
 	}
 
-	out := make([]*dto.ListProductsOutput, 0, len(result))
+	keys := make([]string, len(ids))
 
-	for _, product := range result {
-		out = append(out, &dto.ListProductsOutput{
-			Name: product.Name,
-			Price: product.Price,
-			ImageKey: product.ImageKey,
-			IsAvailable: product.IsAvailable,
-		})
+	for i, k := range ids {
+		keys[i] = fmt.Sprintf("product_%d", k.ID)
+	}
+
+	cacheResults, err := s.cache.MGet(ctx, keys...)
+
+	if err != nil {
+		result, pgErr := s.repo.List(ctx, limit, offset)
+
+		if pgErr != nil {
+			return nil, pgErr
+		}
+
+		out := make([]*dto.ListProductsOutput, 0, len(result))
+
+		for _, product := range result {
+			productOut := dto.ListProductsOutput{
+				Name: product.Name,
+				Price: product.Price,
+				ImageKey: product.ImageKey,
+				IsAvailable: product.IsAvailable,
+			}
+
+			out = append(out, &productOut)
+		}
+		return out, nil
+	}
+
+	missingsIDs := make([]int64, 0)
+
+	for i, v := range cacheResults {
+		if v == nil {
+			missingsIDs = append(missingsIDs, ids[i].ID)
+		}
+	}
+
+	if len(missingsIDs) > 0 {
+		postgresResults, err := s.repo.GetByIDs(ctx, missingsIDs...)
+
+		if err != nil {
+			return nil, err
+		}
+
+		postresResultsMap := make(map[int64]*domain.Product)
+	
+		for _, product := range postgresResults {
+			postresResultsMap[product.ID] = product
+		}
+	
+		for i, res := range cacheResults {
+			if res == nil {
+				currentID := ids[i].ID
+				product, ok := postresResultsMap[currentID]
+
+				if !ok {
+					continue
+				}
+
+				out := dto.ListProductsOutput{
+					Name: product.Name,
+					Price: product.Price,
+					ImageKey: product.ImageKey,
+					IsAvailable: product.IsAvailable,
+				}
+
+				JSONFromProduct, err := json.Marshal(out)
+	
+				if err != nil {
+					return nil, err
+				}
+	
+				cacheResults[i] = string(JSONFromProduct)
+
+				_ = s.cache.Set(
+					context.WithoutCancel(ctx), 
+					fmt.Sprintf("product_%d", currentID), 
+					JSONFromProduct,
+				)
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*dto.ListProductsOutput, 0, len(cacheResults))
+
+	for _, product := range cacheResults {
+		var productFromJSON dto.ListProductsOutput
+
+		strProduct, ok := product.(string)
+
+		if !ok || strProduct == "" {
+			continue
+		}
+
+		err = json.Unmarshal([]byte(strProduct), &productFromJSON)
+
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, &productFromJSON)
 	}
 
 	return out, nil

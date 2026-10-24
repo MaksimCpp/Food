@@ -34,3 +34,7 @@ func (c *RedisCache) Get(ctx context.Context, key string) ([]byte, error) {
 func (c *RedisCache) Delete(ctx context.Context, keys... string) error {
 	return c.rdb.Del(ctx, keys...).Err()
 }
+
+func (c RedisCache) MGet(ctx context.Context, keys... string) ([]interface{}, error) {
+	return c.rdb.MGet(ctx, keys...).Result()
+}

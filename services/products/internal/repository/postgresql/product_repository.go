@@ -206,3 +206,86 @@ func (repo *PostgreSQLProductsRepository) Delete(
 
 	return nil
 }
+
+func (repo *PostgreSQLProductsRepository) GetIDs(
+	ctx context.Context, limit int, offset int,
+) ([]*domain.Product, error) {
+	query := `
+		SELECT id
+		FROM products
+		LIMIT %1
+		OFFSET %2;
+	`
+
+	rows, err := repo.pool.Query(
+		ctx,
+		query,
+		limit,
+		offset,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var result []*domain.Product
+
+	for rows.Next() {
+		var product domain.Product
+		err := rows.Scan(&product.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, &product)
+	}
+
+	return result, nil
+}
+
+func (repo *PostgreSQLProductsRepository) GetByIDs(
+	ctx context.Context, ids... int64,
+) ([]*domain.Product, error) {
+	query := `
+		SELECT id, name, description, price, image_key, is_available
+		FROM products
+		WHERE id = ANY(%1);
+	`
+
+	rows, err := repo.pool.Query(
+		ctx,
+		query,
+		ids,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var result []*domain.Product
+
+	for rows.Next() {
+		var product domain.Product
+		err := rows.Scan(
+			&product.ID,
+			&product.Name,
+			&product.Description,
+			&product.Price,
+			&product.ImageKey,
+			&product.IsAvailable,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, &product)
+	}
+
+	return result, nil
+}
