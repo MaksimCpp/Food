@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package products;
+
+option go_package = "github.com/MaksimCpp/Food/products/productspb";
+
+import "google/protobuf/empty.proto";
+
+service ProductsService {
+    rpc CreateProduct(CreateProductRequest)
+        returns (CreateProductResponse);
+
+    rpc GetProduct(GetProductRequest)
+        returns (GetProductResponse);
+
+    rpc ListProducts(ListProductsRequest)
+        returns (ListProductsResponse);
+
+    rpc UpdateProduct(UpdateProductRequest)
+        returns (UpdateProductResponse);
+
+    rpc DeleteProduct(DeleteProductRequest)
+        returns (google.protobuf.Empty);
+}
+
+message CreateProductRequest {
+    string name = 1;
+    string description = 2;
+    int64 price = 3;
+    string image_name = 4;
+    bool is_available = 5;
+
+    string file_type = 6;
+    bytes file_bytes = 7;
+}
+
+message CreateProductResponse {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    int64 price = 4;
+    string image_key = 5;
+    bool is_available = 6;
+}
+
+message GetProductRequest {
+    int64 id = 1;
+}
+
+message GetProductResponse {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    int64 price = 4;
+    string image_key = 5;
+    bool is_available = 6;
+}
+
+message ListProductsRequest {
+    uint32 limit = 1;
+    uint32 offset = 2;
+}
+
+message ProductItem {
+    string name = 1;
+    int64 price = 2;
+    string image_key = 3;
+    bool is_available = 4;
+}
+
+message ListProductsResponse {
+    repeated ProductItem products = 1; 
+}
+
+message UpdateProductRequest {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    int64 price = 4;
+    string image_key = 5;
+    bool is_available = 6;
+}
+
+message UpdateProductResponse {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    int64 price = 4;
+    string image_key = 5;
+    bool is_available = 6;
+}
+
+message DeleteProductRequest {
+    int64 id = 1;
+}
