@@ -34,8 +34,9 @@ func main() {
 
 	productsRepo := repository.NewPostgreSQLProductsRepository(pool)
 	minioStorage, err := miniostorage.NewMinioStorage(
-		cfg.MinioEndpoint, 
-		cfg.MinioAccessKey, 
+		cfg.MinioEndpoint,
+		cfg.MinioPublicEndpoint,
+		cfg.MinioAccessKey,
 		cfg.MinioSecretKey,
 		cfg.MinioBucket, cfg.MinioUseSSL,
 	)

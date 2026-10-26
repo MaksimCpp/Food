@@ -33,6 +33,10 @@ func (h *ProductsHandler) CreateProduct(
 		Price: int(req.Price),
 		ImageName: req.ImageName,
 		IsAvailable: req.IsAvailable,
+
+		FileBytes: req.FileBytes,
+        FileSize:  int64(len(req.FileBytes)),
+        FileType:  req.FileType,
 	}
 
 	result, err := h.service.Create(ctx, &in)
@@ -86,7 +90,7 @@ func (h *ProductsHandler) ListProducts(
 		return nil, err
 	}
 
-	var res *productspb.ListProductsResponse
+	res := &productspb.ListProductsResponse{}
 
 	for _, product := range result {
 		res.Products = append(res.Products, &productspb.ProductItem{

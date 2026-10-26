@@ -18,7 +18,8 @@ type ProductsConfig struct {
 	// MinioApiPort     string
 	// MinioConsolePort string
 	MinioEndpoint    string
-	MinioBucket      string
+	MinioPublicEndpoint string
+	MinioBucket     string
 	MinioUseSSL      bool
 	MinioAccessKey   string
 	MinioSecretKey   string
@@ -56,6 +57,7 @@ func Load() *ProductsConfig {
 		// MinioApiPort: os.Getenv("MINIO_API_PORT"),
 		// MinioConsolePort: os.Getenv("MINIO_CONSOLE_PORT"),
 		MinioEndpoint: os.Getenv("MINIO_ENDPOINT"),
+		MinioPublicEndpoint: os.Getenv("MINIO_PUBLIC_ENDPOINT"),
 		MinioBucket: os.Getenv("MINIO_BUCKET"),
 		MinioUseSSL: os.Getenv("MINIO_USE_SSL") == "true",
 		MinioAccessKey: os.Getenv("MINIO_ACCESS_KEY"),

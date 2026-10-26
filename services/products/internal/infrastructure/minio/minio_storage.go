@@ -12,11 +12,13 @@ import (
 
 type MinioStorage struct {
 	client     *minio.Client
+	// presignClient подписывает ссылки публичным адресом, доступным снаружи docker-сети
+	presignClient *minio.Client
 	bucketName string
 }
 
 func NewMinioStorage(
-	endpoint, accessKey, secretKey, bucketName string, useSSL bool,
+	endpoint, publicEndpoint, accessKey, secretKey, bucketName string, useSSL bool,
 ) (*MinioStorage, error) {
 	client, err := minio.New(
 		endpoint,
@@ -30,8 +32,27 @@ func NewMinioStorage(
 		return nil, err
 	}
 
+	presignClient := client
+
+	if publicEndpoint != "" {
+		// Region задан явно, чтобы при подписи не было запроса к publicEndpoint
+		presignClient, err = minio.New(
+			publicEndpoint,
+			&minio.Options{
+				Creds: credentials.NewStaticV4(accessKey, secretKey, ""),
+				Secure: useSSL,
+				Region: "us-east-1",
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &MinioStorage{
 		client: client,
+		presignClient: presignClient,
 		bucketName: bucketName,
 	}, nil
 }
@@ -70,7 +91,7 @@ func (s *MinioStorage) GetImage(
 ) (string, error) {
 	req := make(url.Values)
 
-	objectUrl, err := s.client.PresignedGetObject(ctx, s.bucketName, objectName, expires, req)
+	objectUrl, err := s.presignClient.PresignedGetObject(ctx, s.bucketName, objectName, expires, req)
 
 	if err != nil {
 		return "", err

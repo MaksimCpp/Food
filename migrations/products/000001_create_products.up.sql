@@ -4,5 +4,5 @@ CREATE TABLE products(
     description VARCHAR(3000) NOT NULL,
     price INTEGER NOT NULL, -- цена в копейках
     image_key VARCHAR(512),
-    is_available NOT NULL DEFAULT true
+    is_available BOOLEAN NOT NULL DEFAULT true
 );

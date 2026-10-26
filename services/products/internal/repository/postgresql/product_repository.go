@@ -24,7 +24,7 @@ func (repo *PostgreSQLProductsRepository) Create(
 ) (*domain.Product, error) {
 	query := `
 		INSERT INTO products (name, description, price, image_key, is_available)
-		VALUES (%1, %2, %3, %4, %5)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING name, description, price, image_key, is_available;
 	`
 
@@ -59,7 +59,7 @@ func (repo *PostgreSQLProductsRepository) Get(
 	query := `
 		SELECT id, name, description, price, image_key, is_available
 		FROM products
-		WHERE id = %1;
+		WHERE id = $1;
 	`
 
 	var result domain.Product
@@ -93,8 +93,8 @@ func (repo *PostgreSQLProductsRepository) List(
 	query := `
 		SELECT id, name, description, price, image_key, is_available
 		FROM products
-		LIMIT %1
-		OFFSET %2;
+		LIMIT $1
+		OFFSET $2;
 	`
 
 	rows, err := repo.pool.Query(
@@ -141,13 +141,13 @@ func (repo *PostgreSQLProductsRepository) Update(
 		UPDATE 
 			products
 		SET
-			name = %1,
-			description = %2,
-			price = %3,
-			image_key = %4,
-			is_available = %5
+			name = $1,
+			description = $2,
+			price = $3,
+			image_key = $4,
+			is_available = $5
 		WHERE
-			id = %6
+			id = $6
 		RETURNING
 			id, name, description, price, image_key, is_available;
 	`
@@ -187,7 +187,7 @@ func (repo *PostgreSQLProductsRepository) Delete(
 ) error {
 	query := `
 		DELETE FROM products
-		WHERE id = %1;
+		WHERE id = $1;
 	`
 
 	ct, err := repo.pool.Exec(
@@ -213,8 +213,8 @@ func (repo *PostgreSQLProductsRepository) GetIDs(
 	query := `
 		SELECT id
 		FROM products
-		LIMIT %1
-		OFFSET %2;
+		LIMIT $1
+		OFFSET $2;
 	`
 
 	rows, err := repo.pool.Query(
@@ -252,7 +252,7 @@ func (repo *PostgreSQLProductsRepository) GetByIDs(
 	query := `
 		SELECT id, name, description, price, image_key, is_available
 		FROM products
-		WHERE id = ANY(%1);
+		WHERE id = ANY($1);
 	`
 
 	rows, err := repo.pool.Query(

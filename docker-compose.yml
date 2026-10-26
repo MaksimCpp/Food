@@ -31,7 +31,7 @@ services:
       - "${REDIS_PORT}:6379"
 
   minio:
-    image: minio/minio:latest
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
 
     container_name: minio
 
@@ -54,6 +54,31 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  minio-init:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+
+    container_name: minio-init
+
+    depends_on:
+      minio:
+        condition: service_healthy
+
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+
+        mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
+
+        mc admin user add local ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY}
+
+        mc admin policy attach local readwrite --user ${MINIO_ACCESS_KEY} || true
+
+        mc mb --ignore-existing local/${MINIO_BUCKET}
+
+        echo "MinIO user and bucket created"
 
   kafka:
     image: apache/kafka:3.9.0
@@ -228,14 +253,14 @@ services:
       - .env
 
     ports:
-      - "50051:${GRPC_PRODUCTS_PORT}"
+      - "50052:${GRPC_PRODUCTS_PORT}"
 
     depends_on:
       postgres:
         condition: service_healthy
 
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
       # kafka:
       #   condition: service_healthy

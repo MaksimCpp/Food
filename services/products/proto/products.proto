@@ -31,7 +31,7 @@ message CreateProductRequest {
     bool is_available = 5;
 
     string file_type = 6;
-    int64 file_bytes = 7;
+    bytes file_bytes = 7;
 }
 
 message CreateProductResponse {
