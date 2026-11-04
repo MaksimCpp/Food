@@ -21,6 +21,12 @@ service ProductsService {
 
     rpc DeleteProduct(DeleteProductRequest)
         returns (google.protobuf.Empty);
+
+    rpc ReserveProduct(ReserveProductRequest)
+        returns (ReserveProductResponse);
+
+    rpc DeductDeliveredStock(DeductDeliveredStockRequest)
+        returns (DeductDeliveredStockResponse);
 }
 
 message CreateProductRequest {
@@ -29,9 +35,10 @@ message CreateProductRequest {
     int64 price = 3;
     string image_name = 4;
     bool is_available = 5;
+    int64 stock_quantity = 6;
 
-    string file_type = 6;
-    bytes file_bytes = 7;
+    string file_type = 7;
+    bytes file_bytes = 8;
 }
 
 message CreateProductResponse {
@@ -41,6 +48,7 @@ message CreateProductResponse {
     int64 price = 4;
     string image_key = 5;
     bool is_available = 6;
+    int64 stock_quantity = 7;
 }
 
 message GetProductRequest {
@@ -54,6 +62,7 @@ message GetProductResponse {
     int64 price = 4;
     string image_key = 5;
     bool is_available = 6;
+    int64 stock_quantity = 7;
 }
 
 message ListProductsRequest {
@@ -61,15 +70,8 @@ message ListProductsRequest {
     uint32 offset = 2;
 }
 
-message ProductItem {
-    string name = 1;
-    int64 price = 2;
-    string image_key = 3;
-    bool is_available = 4;
-}
-
 message ListProductsResponse {
-    repeated ProductItem products = 1; 
+    repeated GetProductResponse products = 1; 
 }
 
 message UpdateProductRequest {
@@ -79,6 +81,7 @@ message UpdateProductRequest {
     int64 price = 4;
     string image_key = 5;
     bool is_available = 6;
+    int64 stock_quantity = 7;
 }
 
 message UpdateProductResponse {
@@ -88,8 +91,29 @@ message UpdateProductResponse {
     int64 price = 4;
     string image_key = 5;
     bool is_available = 6;
+    int64 stock_quantity = 7;
 }
 
 message DeleteProductRequest {
     int64 id = 1;
+}
+
+message ReserveProductRequest {
+    int64 id = 1;
+    int64 quantity = 2;
+}
+
+message ReserveProductResponse {
+    int64 id = 1;
+    int64 quantity = 2;
+}
+
+message DeductDeliveredStockRequest {
+    int64 id = 1;
+    int64 quantity = 2;
+}
+
+message DeductDeliveredStockResponse {
+    int64 id = 1;
+    int64 stock_quantity = 2;
 }

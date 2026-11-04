@@ -28,15 +28,16 @@ func (h *ProductsHandler) CreateProduct(
 	ctx context.Context, req *productspb.CreateProductRequest,
 ) (*productspb.CreateProductResponse, error) {
 	in := dto.CreateProductInput{
-		Name: req.Name,
-		Description: req.Description,
-		Price: int(req.Price),
-		ImageName: req.ImageName,
-		IsAvailable: req.IsAvailable,
+		Name:          req.Name,
+		Description:   req.Description,
+		Price:         int(req.Price),
+		ImageName:     req.ImageName,
+		IsAvailable:   req.IsAvailable,
+		StockQuantity: req.StockQuantity,
 
 		FileBytes: req.FileBytes,
-        FileSize:  int64(len(req.FileBytes)),
-        FileType:  req.FileType,
+		FileSize:  int64(len(req.FileBytes)),
+		FileType:  req.FileType,
 	}
 
 	result, err := h.service.Create(ctx, &in)
@@ -46,12 +47,13 @@ func (h *ProductsHandler) CreateProduct(
 	}
 
 	res := productspb.CreateProductResponse{
-		Id: result.ID,
-		Name: result.Name,
-		Description: result.Description,
-		Price: int64(result.Price),
-		ImageKey: result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		Id:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         int64(result.Price),
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &res, nil
@@ -70,12 +72,13 @@ func (h *ProductsHandler) GetProduct(
 	}
 
 	res := productspb.GetProductResponse{
-		Id: result.ID,
-		Name: result.Name,
-		Description: result.Description,
-		Price: int64(result.Price),
-		ImageKey: result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		Id:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         int64(result.Price),
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &res, nil
@@ -93,11 +96,13 @@ func (h *ProductsHandler) ListProducts(
 	res := &productspb.ListProductsResponse{}
 
 	for _, product := range result {
-		res.Products = append(res.Products, &productspb.ProductItem{
-			Name: product.Name,
-			Price: int64(product.Price),
-			ImageKey: product.ImageKey,
-			IsAvailable: product.IsAvailable,
+		res.Products = append(res.Products, &productspb.GetProductResponse{
+			Name:          product.Name,
+			Description:   product.Description,
+			Price:         int64(product.Price),
+			ImageKey:      product.ImageKey,
+			IsAvailable:   product.IsAvailable,
+			StockQuantity: product.StockQuantity,
 		})
 	}
 
@@ -108,12 +113,13 @@ func (h *ProductsHandler) UpdateProduct(
 	ctx context.Context, req *productspb.UpdateProductRequest,
 ) (*productspb.UpdateProductResponse, error) {
 	in := dto.UpdateProductIntput{
-		ID: req.Id,
-		Name: req.Name,
-		Description: req.Description,
-		Price: int(req.Price),
-		ImageKey: req.ImageKey,
-		IsAvailable: req.IsAvailable,
+		ID:            req.Id,
+		Name:          req.Name,
+		Description:   req.Description,
+		Price:         int(req.Price),
+		ImageKey:      req.ImageKey,
+		IsAvailable:   req.IsAvailable,
+		StockQuantity: req.StockQuantity,
 	}
 
 	result, err := h.service.Update(ctx, &in, in.ID)
@@ -126,12 +132,13 @@ func (h *ProductsHandler) UpdateProduct(
 	}
 
 	out := productspb.UpdateProductResponse{
-		Id: result.ID,
-		Name: result.Name,
-		Description: result.Description,
-		Price: int64(result.Price),
-		ImageKey: result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		Id:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         int64(result.Price),
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &out, nil

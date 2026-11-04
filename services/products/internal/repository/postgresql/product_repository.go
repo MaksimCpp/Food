@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/MaksimCpp/products/internal/domain"
+	"github.com/MaksimCpp/products/internal/dto"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,9 +24,9 @@ func (repo *PostgreSQLProductsRepository) Create(
 	ctx context.Context, product *domain.Product,
 ) (*domain.Product, error) {
 	query := `
-		INSERT INTO products (name, description, price, image_key, is_available)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING name, description, price, image_key, is_available;
+		INSERT INTO products (name, description, price, image_key, is_available, stock_quantity)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, name, description, price, image_key, is_available, stock_quantity;
 	`
 
 	var result domain.Product
@@ -38,12 +39,15 @@ func (repo *PostgreSQLProductsRepository) Create(
 		product.Price,
 		product.ImageKey,
 		product.IsAvailable,
+		product.StockQuantity,
 	).Scan(
+		&result.ID,
 		&result.Name,
 		&result.Description,
 		&result.Price,
 		&result.ImageKey,
 		&result.IsAvailable,
+		&result.StockQuantity,
 	)
 
 	if err != nil {
@@ -57,7 +61,7 @@ func (repo *PostgreSQLProductsRepository) Get(
 	ctx context.Context, id int64,
 ) (*domain.Product, error) {
 	query := `
-		SELECT id, name, description, price, image_key, is_available
+		SELECT id, name, description, price, image_key, is_available, stock_quantity
 		FROM products
 		WHERE id = $1;
 	`
@@ -75,6 +79,7 @@ func (repo *PostgreSQLProductsRepository) Get(
 		&result.Price,
 		&result.ImageKey,
 		&result.IsAvailable,
+		&result.StockQuantity,
 	)
 
 	if err != nil {
@@ -91,7 +96,7 @@ func (repo *PostgreSQLProductsRepository) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*domain.Product, error) {
 	query := `
-		SELECT id, name, description, price, image_key, is_available
+		SELECT id, name, description, price, image_key, is_available, stock_quantity
 		FROM products
 		LIMIT $1
 		OFFSET $2;
@@ -113,7 +118,7 @@ func (repo *PostgreSQLProductsRepository) List(
 	var results []*domain.Product
 
 	for rows.Next() {
-		var result *domain.Product
+		result := &domain.Product{}
 
 		err := rows.Scan(
 			&result.ID,
@@ -122,6 +127,7 @@ func (repo *PostgreSQLProductsRepository) List(
 			&result.Price,
 			&result.ImageKey,
 			&result.IsAvailable,
+			&result.StockQuantity,
 		)
 
 		if err != nil {
@@ -145,11 +151,12 @@ func (repo *PostgreSQLProductsRepository) Update(
 			description = $2,
 			price = $3,
 			image_key = $4,
-			is_available = $5
+			is_available = $5,
+			stock_quantity = $6
 		WHERE
-			id = $6
+			id = $7
 		RETURNING
-			id, name, description, price, image_key, is_available;
+			id, name, description, price, image_key, is_available, stock_quantity;
 	`
 
 	var result domain.Product
@@ -162,6 +169,7 @@ func (repo *PostgreSQLProductsRepository) Update(
 		newProduct.Price,
 		newProduct.ImageKey,
 		newProduct.IsAvailable,
+		newProduct.StockQuantity,
 		id,
 	).Scan(
 		&result.ID,
@@ -170,6 +178,7 @@ func (repo *PostgreSQLProductsRepository) Update(
 		&result.Price,
 		&result.ImageKey,
 		&result.IsAvailable,
+		&result.StockQuantity,
 	)
 
 	if err != nil {
@@ -247,10 +256,10 @@ func (repo *PostgreSQLProductsRepository) GetIDs(
 }
 
 func (repo *PostgreSQLProductsRepository) GetByIDs(
-	ctx context.Context, ids... int64,
+	ctx context.Context, ids ...int64,
 ) ([]*domain.Product, error) {
 	query := `
-		SELECT id, name, description, price, image_key, is_available
+		SELECT id, name, description, price, image_key, is_available, stock_quantity
 		FROM products
 		WHERE id = ANY($1);
 	`
@@ -278,6 +287,7 @@ func (repo *PostgreSQLProductsRepository) GetByIDs(
 			&product.Price,
 			&product.ImageKey,
 			&product.IsAvailable,
+			&product.StockQuantity,
 		)
 
 		if err != nil {
@@ -288,4 +298,134 @@ func (repo *PostgreSQLProductsRepository) GetByIDs(
 	}
 
 	return result, nil
+}
+
+	// reserved_quantity
+	// stock_quantity
+
+func (repo *PostgreSQLProductsRepository) Reserve(
+	ctx context.Context, in *dto.ReserveProductInputOutput,
+) (*dto.ReserveProductInputOutput, error) {
+	query := `
+		UPDATE products
+		SET reserved_quantity = reserved_quantity + $1
+		WHERE id = $2 AND reserved_quantity + $1 <= stock_quantity
+		RETURNING id, $1;
+	`
+
+	result := dto.ReserveProductInputOutput{}
+
+	tx, err := repo.pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.ReadCommitted,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback(ctx)
+
+	err = tx.QueryRow(
+		ctx,
+		query,
+		in.Quantity,
+		in.ID,
+	).Scan(
+		&result.ID,
+		&result.Quantity,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			var exist bool
+			err = tx.QueryRow(
+				ctx,
+				`SELECT EXISTS(SELECT 1 FROM products WHERE id = $1);`,
+				in.ID,
+			).Scan(&exist)
+
+			if err != nil {
+				return nil, err
+			} 
+			
+			if !exist {
+				return nil, domain.ErrProductNotFound
+			}
+
+			return nil, domain.ErrProductQuantity
+		}
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (repo *PostgreSQLProductsRepository) DeductDeliveredStock(
+	ctx context.Context, in *dto.DeductDeliveredStockInput,
+) (*dto.DeductDeliveredStockOutput, error) {
+	query := `
+		UPDATE products
+		SET stock_quantity = stock_quantity - $1,
+			reserved_quantity = reserved_quantity - $1
+		WHERE id = $2 AND stock_quantity >= $1 AND reserved_quantity >= $1
+		RETURNING id, stock_quantity;
+	`
+
+	result := dto.DeductDeliveredStockOutput{}
+
+	tx, err := repo.pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.ReadCommitted,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Rollback(ctx)
+
+	err = tx.QueryRow(
+		ctx,
+		query,
+		in.Quantity,
+		in.ID,
+	).Scan(
+		&result.ID,
+		&result.StockQuantity,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			var exist bool
+			err = tx.QueryRow(
+				ctx,
+				`SELECT EXISTS(SELECT 1 FROM products WHERE id = $1);`,
+				in.ID,
+			).Scan(&exist)
+
+			if err != nil {
+				return nil, err
+			} 
+			
+			if !exist {
+				return nil, domain.ErrProductNotFound
+			}
+
+			return nil, domain.ErrProductQuantity
+		}
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

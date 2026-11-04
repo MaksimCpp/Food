@@ -40,7 +40,9 @@ func main() {
 		cfg.MinioSecretKey,
 		cfg.MinioBucket, cfg.MinioUseSSL,
 	)
-	cache := rediscache.NewRedisCache(cfg.RedisAddress, time.Duration(cfg.RedisTTLMinutes))
+	cache := rediscache.NewRedisCache(
+		cfg.RedisAddress, time.Minute * time.Duration(cfg.RedisTTLMinutes),
+	)
 
 	if err != nil {
 		log.Fatal(err.Error())

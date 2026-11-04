@@ -20,11 +20,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductsService_CreateProduct_FullMethodName = "/products.ProductsService/CreateProduct"
-	ProductsService_GetProduct_FullMethodName    = "/products.ProductsService/GetProduct"
-	ProductsService_ListProducts_FullMethodName  = "/products.ProductsService/ListProducts"
-	ProductsService_UpdateProduct_FullMethodName = "/products.ProductsService/UpdateProduct"
-	ProductsService_DeleteProduct_FullMethodName = "/products.ProductsService/DeleteProduct"
+	ProductsService_CreateProduct_FullMethodName        = "/products.ProductsService/CreateProduct"
+	ProductsService_GetProduct_FullMethodName           = "/products.ProductsService/GetProduct"
+	ProductsService_ListProducts_FullMethodName         = "/products.ProductsService/ListProducts"
+	ProductsService_UpdateProduct_FullMethodName        = "/products.ProductsService/UpdateProduct"
+	ProductsService_DeleteProduct_FullMethodName        = "/products.ProductsService/DeleteProduct"
+	ProductsService_ReserveProduct_FullMethodName       = "/products.ProductsService/ReserveProduct"
+	ProductsService_DeductDeliveredStock_FullMethodName = "/products.ProductsService/DeductDeliveredStock"
 )
 
 // ProductsServiceClient is the client API for ProductsService service.
@@ -36,6 +38,8 @@ type ProductsServiceClient interface {
 	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error)
 	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ReserveProduct(ctx context.Context, in *ReserveProductRequest, opts ...grpc.CallOption) (*ReserveProductResponse, error)
+	DeductDeliveredStock(ctx context.Context, in *DeductDeliveredStockRequest, opts ...grpc.CallOption) (*DeductDeliveredStockResponse, error)
 }
 
 type productsServiceClient struct {
@@ -96,6 +100,26 @@ func (c *productsServiceClient) DeleteProduct(ctx context.Context, in *DeletePro
 	return out, nil
 }
 
+func (c *productsServiceClient) ReserveProduct(ctx context.Context, in *ReserveProductRequest, opts ...grpc.CallOption) (*ReserveProductResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReserveProductResponse)
+	err := c.cc.Invoke(ctx, ProductsService_ReserveProduct_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productsServiceClient) DeductDeliveredStock(ctx context.Context, in *DeductDeliveredStockRequest, opts ...grpc.CallOption) (*DeductDeliveredStockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeductDeliveredStockResponse)
+	err := c.cc.Invoke(ctx, ProductsService_DeductDeliveredStock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductsServiceServer is the server API for ProductsService service.
 // All implementations must embed UnimplementedProductsServiceServer
 // for forward compatibility.
@@ -105,6 +129,8 @@ type ProductsServiceServer interface {
 	ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error)
 	DeleteProduct(context.Context, *DeleteProductRequest) (*emptypb.Empty, error)
+	ReserveProduct(context.Context, *ReserveProductRequest) (*ReserveProductResponse, error)
+	DeductDeliveredStock(context.Context, *DeductDeliveredStockRequest) (*DeductDeliveredStockResponse, error)
 	mustEmbedUnimplementedProductsServiceServer()
 }
 
@@ -129,6 +155,12 @@ func (UnimplementedProductsServiceServer) UpdateProduct(context.Context, *Update
 }
 func (UnimplementedProductsServiceServer) DeleteProduct(context.Context, *DeleteProductRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteProduct not implemented")
+}
+func (UnimplementedProductsServiceServer) ReserveProduct(context.Context, *ReserveProductRequest) (*ReserveProductResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReserveProduct not implemented")
+}
+func (UnimplementedProductsServiceServer) DeductDeliveredStock(context.Context, *DeductDeliveredStockRequest) (*DeductDeliveredStockResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeductDeliveredStock not implemented")
 }
 func (UnimplementedProductsServiceServer) mustEmbedUnimplementedProductsServiceServer() {}
 func (UnimplementedProductsServiceServer) testEmbeddedByValue()                         {}
@@ -241,6 +273,42 @@ func _ProductsService_DeleteProduct_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductsService_ReserveProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReserveProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductsServiceServer).ReserveProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductsService_ReserveProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductsServiceServer).ReserveProduct(ctx, req.(*ReserveProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductsService_DeductDeliveredStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeductDeliveredStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductsServiceServer).DeductDeliveredStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductsService_DeductDeliveredStock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductsServiceServer).DeductDeliveredStock(ctx, req.(*DeductDeliveredStockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductsService_ServiceDesc is the grpc.ServiceDesc for ProductsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,6 +335,14 @@ var ProductsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProduct",
 			Handler:    _ProductsService_DeleteProduct_Handler,
+		},
+		{
+			MethodName: "ReserveProduct",
+			Handler:    _ProductsService_ReserveProduct_Handler,
+		},
+		{
+			MethodName: "DeductDeliveredStock",
+			Handler:    _ProductsService_DeductDeliveredStock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
