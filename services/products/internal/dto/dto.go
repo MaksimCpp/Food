@@ -33,6 +33,13 @@ type GetProductOutput struct {
 	StockQuantity int64
 }
 
+type ListProductOutput struct {
+	Name          string
+	Price         int
+	ImageKey      string
+	IsAvailable   bool
+}
+
 type UpdateProductIntput struct {
 	ID            int64
 	Name          string

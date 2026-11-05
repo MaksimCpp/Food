@@ -96,13 +96,11 @@ func (h *ProductsHandler) ListProducts(
 	res := &productspb.ListProductsResponse{}
 
 	for _, product := range result {
-		res.Products = append(res.Products, &productspb.GetProductResponse{
+		res.Products = append(res.Products, &productspb.ProductItem{
 			Name:          product.Name,
-			Description:   product.Description,
 			Price:         int64(product.Price),
 			ImageKey:      product.ImageKey,
 			IsAvailable:   product.IsAvailable,
-			StockQuantity: product.StockQuantity,
 		})
 	}
 
@@ -148,4 +146,66 @@ func (h *ProductsHandler) DeleteProduct(
 	ctx context.Context, req *productspb.DeleteProductRequest,
 ) (*emptypb.Empty, error) {
 	return nil, h.service.Delete(ctx, req.Id)
+}
+
+func (h *ProductsHandler) ReserveProduct(
+	ctx context.Context, req *productspb.ReserveProductRequest,
+) (*productspb.ReserveProductResponse, error) {
+	in := dto.ReserveProductInputOutput{
+		ID: req.Id,
+		Quantity: req.Quantity,
+	}
+
+	out, err := h.service.Reserve(ctx, &in)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrProductNotFound):
+			return nil, status.Error(codes.NotFound, "Product not found.")
+		
+		case errors.Is(err, domain.ErrProductQuantity):
+			return nil, status.Error(codes.InvalidArgument, "Invalid quantity.")
+		
+		default:
+			return nil, status.Error(codes.Internal, "Internal server error.")
+		}
+	}
+
+	res := productspb.ReserveProductResponse{
+		Id: out.ID,
+		Quantity: out.Quantity,
+	}
+
+	return &res, nil
+}
+
+func (h *ProductsHandler) DeductDeliveredStock(
+	ctx context.Context, req *productspb.DeductDeliveredStockRequest,
+) (*productspb.DeductDeliveredStockResponse, error) {
+	in := dto.DeductDeliveredStockInput{
+		ID: req.Id,
+		Quantity: req.Quantity,
+	}
+
+	out, err := h.service.DeductDeliveredStock(ctx, &in)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrProductNotFound):
+			return nil, status.Error(codes.NotFound, "Product not found.")
+		
+		case errors.Is(err, domain.ErrProductQuantity):
+			return nil, status.Error(codes.InvalidArgument, "Invalid quantity.")
+		
+		default:
+			return nil, status.Error(codes.Internal, "Internal server error.")
+		}
+	}
+
+	res := productspb.DeductDeliveredStockResponse{
+		Id: out.ID,
+		StockQuantity: out.StockQuantity,
+	}
+
+	return &res, nil
 }

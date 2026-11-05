@@ -300,9 +300,6 @@ func (repo *PostgreSQLProductsRepository) GetByIDs(
 	return result, nil
 }
 
-	// reserved_quantity
-	// stock_quantity
-
 func (repo *PostgreSQLProductsRepository) Reserve(
 	ctx context.Context, in *dto.ReserveProductInputOutput,
 ) (*dto.ReserveProductInputOutput, error) {
