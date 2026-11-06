@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/MaksimCpp/products/internal/domain"
 	"github.com/MaksimCpp/products/internal/dto"
@@ -39,11 +40,12 @@ func (s *PostgreSQLProductsService) Create(
 	key, err := s.storage.Upload(ctx, imageKey, in.FileBytes, in.FileSize, in.FileType)
 
 	product := domain.Product{
-		Name:        in.Name,
-		Description: in.Description,
-		Price:       in.Price,
-		ImageKey:    key,
-		IsAvailable: in.IsAvailable,
+		Name:          in.Name,
+		Description:   in.Description,
+		Price:         in.Price,
+		ImageKey:      key,
+		IsAvailable:   in.IsAvailable,
+		StockQuantity: in.StockQuantity,
 	}
 
 	result, err := s.repo.Create(ctx, &product)
@@ -63,12 +65,13 @@ func (s *PostgreSQLProductsService) Create(
 	err = s.cache.Set(ctx, cacheKey, dataForCache)
 
 	out := dto.CreateProductOutput{
-		ID:          result.ID,
-		Name:        result.Name,
-		Description: result.Description,
-		Price:       result.Price,
-		ImageKey:    result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		ID:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         result.Price,
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &out, nil
@@ -107,11 +110,13 @@ func (s *PostgreSQLProductsService) Get(
 	err = s.cache.Set(ctx, key, data)
 
 	out := dto.GetProductOutput{
-		Name:        result.Name,
-		Description: result.Description,
-		Price:       result.Price,
-		ImageKey:    result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		ID:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         result.Price,
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &out, nil
@@ -119,7 +124,7 @@ func (s *PostgreSQLProductsService) Get(
 
 func (s *PostgreSQLProductsService) List(
 	ctx context.Context, limit int, offset int,
-) ([]*dto.ListProductsOutput, error) {
+) ([]*dto.ListProductOutput, error) {
 	ids, err := s.repo.GetIDs(ctx, limit, offset)
 
 	if err != nil {
@@ -141,14 +146,14 @@ func (s *PostgreSQLProductsService) List(
 			return nil, pgErr
 		}
 
-		out := make([]*dto.ListProductsOutput, 0, len(result))
+		out := make([]*dto.ListProductOutput, 0, len(result))
 
 		for _, product := range result {
-			productOut := dto.ListProductsOutput{
-				Name:        product.Name,
-				Price:       product.Price,
-				ImageKey:    product.ImageKey,
-				IsAvailable: product.IsAvailable,
+			productOut := dto.ListProductOutput{
+				Name:          product.Name,
+				Price:         product.Price,
+				IsAvailable:   product.IsAvailable,
+				ImageKey:      product.ImageKey,
 			}
 
 			out = append(out, &productOut)
@@ -186,14 +191,30 @@ func (s *PostgreSQLProductsService) List(
 					continue
 				}
 
-				out := dto.ListProductsOutput{
-					Name:        product.Name,
-					Price:       product.Price,
-					ImageKey:    product.ImageKey,
-					IsAvailable: product.IsAvailable,
+				out := dto.ListProductOutput{
+					Name:          product.Name,
+					Price:         product.Price,
+					IsAvailable:   product.IsAvailable,
+					ImageKey:      product.ImageKey,
+				}
+
+				outForCache := dto.GetProductOutput{
+					ID:            product.ID,
+					Name:          product.Name,
+					Description:   product.Description,
+					Price:         product.Price,
+					ImageKey:      product.ImageKey,
+					IsAvailable:   product.IsAvailable,
+					StockQuantity: product.StockQuantity,
 				}
 
 				JSONFromProduct, err := json.Marshal(out)
+				
+				if err != nil {
+					return nil, err
+				}
+
+				JSONFromProductForCache, err := json.Marshal(outForCache)
 
 				if err != nil {
 					return nil, err
@@ -204,7 +225,7 @@ func (s *PostgreSQLProductsService) List(
 				_ = s.cache.Set(
 					context.WithoutCancel(ctx),
 					fmt.Sprintf("product_%d", currentID),
-					JSONFromProduct,
+					JSONFromProductForCache,
 				)
 			}
 		}
@@ -214,10 +235,10 @@ func (s *PostgreSQLProductsService) List(
 		return nil, err
 	}
 
-	out := make([]*dto.ListProductsOutput, 0, len(cacheResults))
+	out := make([]*dto.ListProductOutput, 0, len(cacheResults))
 
 	for _, product := range cacheResults {
-		var productFromJSON dto.ListProductsOutput
+		var productFromJSON dto.ListProductOutput
 
 		strProduct, ok := product.(string)
 
@@ -242,11 +263,12 @@ func (s *PostgreSQLProductsService) Update(
 ) (*dto.UpdateProductOutput, error) {
 
 	product := domain.Product{
-		Name:        newProduct.Name,
-		Description: newProduct.Description,
-		Price:       newProduct.Price,
-		ImageKey:    newProduct.ImageKey,
-		IsAvailable: newProduct.IsAvailable,
+		Name:          newProduct.Name,
+		Description:   newProduct.Description,
+		Price:         newProduct.Price,
+		ImageKey:      newProduct.ImageKey,
+		IsAvailable:   newProduct.IsAvailable,
+		StockQuantity: newProduct.StockQuantity,
 	}
 
 	result, err := s.repo.Update(
@@ -272,12 +294,13 @@ func (s *PostgreSQLProductsService) Update(
 	}
 
 	out := dto.UpdateProductOutput{
-		ID:          result.ID,
-		Name:        result.Name,
-		Description: result.Description,
-		Price:       result.Price,
-		ImageKey:    result.ImageKey,
-		IsAvailable: result.IsAvailable,
+		ID:            result.ID,
+		Name:          result.Name,
+		Description:   result.Description,
+		Price:         result.Price,
+		ImageKey:      result.ImageKey,
+		IsAvailable:   result.IsAvailable,
+		StockQuantity: result.StockQuantity,
 	}
 
 	return &out, nil
@@ -293,4 +316,82 @@ func (s *PostgreSQLProductsService) Delete(ctx context.Context, id int64) error 
 	key := fmt.Sprintf("product_%d", id)
 
 	return s.cache.Delete(ctx, key)
+}
+
+func (s *PostgreSQLProductsService) Reserve(
+	ctx context.Context, in *dto.ReserveProductInputOutput,
+) (*dto.ReserveProductInputOutput, error) {
+	if in.Quantity <= 0 {
+		return nil, domain.ErrProductQuantity
+	}
+
+	out, err := s.repo.Reserve(ctx, in)
+
+	if err != nil {
+		return nil, err
+	}
+
+	key := fmt.Sprintf("product_%d", out.ID)
+
+	newProduct, err := s.repo.Get(ctx, in.ID)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	data, err := json.Marshal(newProduct)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	err = s.cache.Set(ctx, key, data)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	return out, nil
+}
+
+func (s *PostgreSQLProductsService) DeductDeliveredStock(
+	ctx context.Context, in *dto.DeductDeliveredStockInput,
+) (*dto.DeductDeliveredStockOutput, error) {
+	if in.Quantity <= 0 {
+		return nil, domain.ErrProductQuantity
+	}
+
+	out, err := s.repo.DeductDeliveredStock(ctx, in)
+
+	if err != nil {
+		return nil, err
+	}
+
+	key := fmt.Sprintf("product_%d", out.ID)
+
+	newProduct, err := s.repo.Get(ctx, in.ID)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	data, err := json.Marshal(newProduct)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	err = s.cache.Set(ctx, key, data)
+
+	if err != nil {
+		log.Println(err.Error())
+		return out, nil
+	}
+
+	return out, nil
 }

@@ -9,23 +9,23 @@ import (
 )
 
 type ProductsConfig struct {
-	DBUrl            string
+	DBUrl string
 
-	GRPCPort         string
-	GRPCAddress      string
-	GRPCAuthAddress  string
+	GRPCPort        string
+	GRPCAddress     string
+	GRPCAuthAddress string
 
 	// MinioApiPort     string
 	// MinioConsolePort string
-	MinioEndpoint    string
+	MinioEndpoint       string
 	MinioPublicEndpoint string
-	MinioBucket     string
-	MinioUseSSL      bool
-	MinioAccessKey   string
-	MinioSecretKey   string
+	MinioBucket         string
+	MinioUseSSL         bool
+	MinioAccessKey      string
+	MinioSecretKey      string
 
-	RedisAddress     string
-	RedisTTLMinutes  int
+	RedisAddress    string
+	RedisTTLMinutes int
 }
 
 func Load() *ProductsConfig {
@@ -50,21 +50,21 @@ func Load() *ProductsConfig {
 			host, port, db,
 		),
 
-		GRPCPort: os.Getenv("GRPC_PRODUCTS_PORT"),
-		GRPCAddress: os.Getenv("GRPC_PRODUCTS_ADDRESS"),
+		GRPCPort:        os.Getenv("GRPC_PRODUCTS_PORT"),
+		GRPCAddress:     os.Getenv("GRPC_PRODUCTS_ADDRESS"),
 		GRPCAuthAddress: os.Getenv("GRPC_AUTH_ADDRESS"),
 
 		// MinioApiPort: os.Getenv("MINIO_API_PORT"),
 		// MinioConsolePort: os.Getenv("MINIO_CONSOLE_PORT"),
-		MinioEndpoint: os.Getenv("MINIO_ENDPOINT"),
+		MinioEndpoint:       os.Getenv("MINIO_ENDPOINT"),
 		MinioPublicEndpoint: os.Getenv("MINIO_PUBLIC_ENDPOINT"),
-		MinioBucket: os.Getenv("MINIO_BUCKET"),
-		MinioUseSSL: os.Getenv("MINIO_USE_SSL") == "true",
-		MinioAccessKey: os.Getenv("MINIO_ACCESS_KEY"),
-		MinioSecretKey: os.Getenv("MINIO_SECRET_KEY"),
+		MinioBucket:         os.Getenv("MINIO_BUCKET"),
+		MinioUseSSL:         os.Getenv("MINIO_USE_SSL") == "true",
+		MinioAccessKey:      os.Getenv("MINIO_ACCESS_KEY"),
+		MinioSecretKey:      os.Getenv("MINIO_SECRET_KEY"),
 
-		RedisAddress: os.Getenv("REDIS_ADDRESS"),
+		RedisAddress:    os.Getenv("REDIS_ADDRESS"),
 		RedisTTLMinutes: redisTTL,
 	}
-	
+
 }
