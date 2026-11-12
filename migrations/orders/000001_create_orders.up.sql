@@ -1,4 +1,8 @@
-CREATE TYPE order_status AS ENUM ();
+CREATE TYPE order_status AS ENUM (
+    'accepted',
+    'out_for_delivery',
+    'delivered'
+);
 
 CREATE TABLE orders(
     user_id INTEGER NOT NULL CHECK (user_id > 0),
@@ -6,5 +10,5 @@ CREATE TABLE orders(
     products_quantity INTEGER NOT NULL CHECK (products_quantity > 0),
     courier_id INTEGER CHECK (courier_id > 0),
     address VARCHAR(400) NOT NULL, -- в будущем добавить GEOGRAPHY
-    status order_status NOT NULL DEFAULT '',
+    status order_status NOT NULL DEFAULT 'ACCEPT',
 );

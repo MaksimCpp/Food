@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package orders;
+
+option go_package = "github.com/MaksimCpp/Food/orders/orderspb";
+
+import "google/protobuf/empty.proto";
+
+service OrderService {
+    rpc CreateOrder(CreateOrderRequest)
+        returns (CreateOrderResponse);
+
+    rpc ListOrders(google.protobuf.Empty)
+        returns (ListOrdersResponse);
+
+    rpc GetOrder(GetOrderRequest)
+        returns (GetOrderResponse);
+
+    rpc AcceptOrder(AcceptOrderRequest)
+        returns (AcceptOrderResponse);
+
+    rpc CompleteDelivery(CompleteDeliveryRequest)
+        returns (CompleteDeliveryResponse);
+}
+
+message CreateOrderRequest {
+    int64 user_id = 1;
+    int64 product_id = 2;
+    int64 products_quantity = 3;
+    int64 courier_id = 4;
+    string address = 5;
+    string status = 6;
+}
+
+message CreateOrderResponse {
+    int64 product_id = 1;
+    int64 products_quantity = 2;
+    int64 courier_id = 3;
+    string address = 4;
+}
+
+message OrderItem {
+    int64 product_id = 1;
+    int64 products_quantity = 2;
+    int64 courier_id = 3;
+    string address = 4;
+}
+
+message ListOrdersResponse {
+    repeated OrderItem orders = 1;
+}
+
+message GetOrderRequest {
+    int64 id = 1;
+}
+
+message GetOrderResponse {
+    int64 user_id = 1;
+    int64 product_id = 2;
+    int64 products_quantity = 3;
+    int64 courier_id = 4;
+    string address = 5;
+    string status = 6;
+}
+
+message AcceptOrderRequest {
+    int64 id = 1;
+    int64 courier_id = 2;
+}
+
+message AcceptOrderResponse {
+    int64 id = 1;
+    int64 courier_id = 2;
+    string status = 6;
+}
+
+message CompleteDeliveryRequest {
+    int64 id = 1;
+}
+
+message CompleteDeliveryResponse {
+    int64 id = 1;
+    string status = 2;
+}
