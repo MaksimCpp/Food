@@ -55,7 +55,7 @@ func main() {
 	authClient := authpb.NewAuthServiceClient(authConn)
 
 	userRepo := repository.NewPostgreSQLUserRepository(pool)
-	userService := service.NewPostgreSQLUserService(cfg.AdminCode, userRepo, tokenService)
+	userService := service.NewUserService(cfg.AdminCode, userRepo, tokenService)
 
 	var publicMethods = map[string]struct{}{
 		"/auth.AuthService/RegisterUser":        {},

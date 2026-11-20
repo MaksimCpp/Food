@@ -7,6 +7,7 @@ const (
 )
 
 type Order struct {
+    ID               int64
 	UserID           int64
     ProductID        int64
     ProductsQuantity int64

@@ -11,23 +11,23 @@ import (
 	"github.com/google/uuid"
 )
 
-type PostgreSQLProductsService struct {
+type ProductsService struct {
 	repo    domain.ProductsRepository
 	storage domain.FileStorage
 	cache   domain.Cache
 }
 
-func NewPostgreSQLProductsService(
+func NewProductsService(
 	repo domain.ProductsRepository, storage domain.FileStorage, cache domain.Cache,
-) *PostgreSQLProductsService {
-	return &PostgreSQLProductsService{
+) *ProductsService {
+	return &ProductsService{
 		repo:    repo,
 		storage: storage,
 		cache:   cache,
 	}
 }
 
-func (s *PostgreSQLProductsService) Create(
+func (s *ProductsService) Create(
 	ctx context.Context, in *dto.CreateProductInput,
 ) (*dto.CreateProductOutput, error) {
 	imageUuid := uuid.New().String()
@@ -77,7 +77,7 @@ func (s *PostgreSQLProductsService) Create(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductsService) Get(
+func (s *ProductsService) Get(
 	ctx context.Context, id int64,
 ) (*dto.GetProductOutput, error) {
 	key := fmt.Sprintf("product_%d", id)
@@ -122,7 +122,7 @@ func (s *PostgreSQLProductsService) Get(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductsService) List(
+func (s *ProductsService) List(
 	ctx context.Context, limit int, offset int,
 ) ([]*dto.ListProductOutput, error) {
 	ids, err := s.repo.GetIDs(ctx, limit, offset)
@@ -258,7 +258,7 @@ func (s *PostgreSQLProductsService) List(
 	return out, nil
 }
 
-func (s *PostgreSQLProductsService) Update(
+func (s *ProductsService) Update(
 	ctx context.Context, newProduct *dto.UpdateProductIntput, id int64,
 ) (*dto.UpdateProductOutput, error) {
 
@@ -306,7 +306,7 @@ func (s *PostgreSQLProductsService) Update(
 	return &out, nil
 }
 
-func (s *PostgreSQLProductsService) Delete(ctx context.Context, id int64) error {
+func (s *ProductsService) Delete(ctx context.Context, id int64) error {
 	err := s.repo.Delete(ctx, id)
 
 	if err != nil {
@@ -318,7 +318,7 @@ func (s *PostgreSQLProductsService) Delete(ctx context.Context, id int64) error 
 	return s.cache.Delete(ctx, key)
 }
 
-func (s *PostgreSQLProductsService) Reserve(
+func (s *ProductsService) Reserve(
 	ctx context.Context, in *dto.ReserveProductInputOutput,
 ) (*dto.ReserveProductInputOutput, error) {
 	if in.Quantity <= 0 {
@@ -357,7 +357,7 @@ func (s *PostgreSQLProductsService) Reserve(
 	return out, nil
 }
 
-func (s *PostgreSQLProductsService) DeductDeliveredStock(
+func (s *ProductsService) DeductDeliveredStock(
 	ctx context.Context, in *dto.DeductDeliveredStockInput,
 ) (*dto.DeductDeliveredStockOutput, error) {
 	if in.Quantity <= 0 {

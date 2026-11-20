@@ -6,7 +6,7 @@ import (
 	"github.com/MaksimCpp/auth/internal/dto"
 )
 
-type UserService interface {
+type UserServiceInterface interface {
 	RegisterUser(ctx context.Context, in *dto.RegisterInput) (*dto.RegisterOutput, error)
 	RegisterAdmin(ctx context.Context, in *dto.RegisterAdminInput) (*dto.RegisterOutput, error)
 	RegisterCourier(ctx context.Context, in *dto.RegisterInput) (*dto.RegisterOutput, error)

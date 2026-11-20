@@ -15,10 +15,10 @@ import (
 type ProductsHandler struct {
 	productspb.UnimplementedProductsServiceServer
 
-	service domain.ProductsService
+	service domain.ProductsServiceInterface
 }
 
-func NewProductsHandler(service domain.ProductsService) *ProductsHandler {
+func NewProductsHandler(service domain.ProductsServiceInterface) *ProductsHandler {
 	return &ProductsHandler{
 		service: service,
 	}

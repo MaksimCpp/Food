@@ -10,25 +10,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type PostgreSQLUserService struct {
+type UserService struct {
 	adminCode    string
 	repo         domain.UserRepository
-	tokenService domain.TokenService
+	tokenService domain.TokenServiceInterface
 }
 
-func NewPostgreSQLUserService(
+func NewUserService(
 	adminCode string,
 	repo domain.UserRepository,
-	tokenService domain.TokenService,
-) *PostgreSQLUserService {
-	return &PostgreSQLUserService{
+	tokenService domain.TokenServiceInterface,
+) *UserService {
+	return &UserService{
 		adminCode: adminCode,
 		repo: repo,
 		tokenService: tokenService,
 	}
 }
 
-func (s *PostgreSQLUserService) RegisterUser(
+func (s *UserService) RegisterUser(
 	ctx context.Context, in *dto.RegisterInput,
 ) (*dto.RegisterOutput, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(in.Password), 10)
@@ -64,7 +64,7 @@ func (s *PostgreSQLUserService) RegisterUser(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) RegisterAdmin(
+func (s *UserService) RegisterAdmin(
 	ctx context.Context, in *dto.RegisterAdminInput,
 ) (*dto.RegisterOutput, error) {
 	if in.AdminCode != s.adminCode {
@@ -103,7 +103,7 @@ func (s *PostgreSQLUserService) RegisterAdmin(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) RegisterCourier(
+func (s *UserService) RegisterCourier(
 	ctx context.Context, in *dto.RegisterInput,
 ) (*dto.RegisterOutput, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(in.Password), 10)
@@ -139,7 +139,7 @@ func (s *PostgreSQLUserService) RegisterCourier(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) LoginUser(
+func (s *UserService) LoginUser(
 	ctx context.Context, in *dto.LoginInput,
 ) (*dto.LoginOutput, error) {
 	user, err := s.repo.GetByEmail(ctx, in.Email)
@@ -178,7 +178,7 @@ func (s *PostgreSQLUserService) LoginUser(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) LoginAdmin(
+func (s *UserService) LoginAdmin(
 	ctx context.Context, in *dto.LoginAdminInput,
 ) (*dto.LoginOutput, error) {
 	if in.AdminCode != s.adminCode {
@@ -220,7 +220,7 @@ func (s *PostgreSQLUserService) LoginAdmin(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) LoginCourier(
+func (s *UserService) LoginCourier(
 	ctx context.Context, in *dto.LoginInput,
 ) (*dto.LoginOutput, error) {
 	user, err := s.repo.GetByEmail(ctx, in.Email)
@@ -259,7 +259,7 @@ func (s *PostgreSQLUserService) LoginCourier(
 	return &out, nil
 }
 
-func (s *PostgreSQLUserService) Refresh(
+func (s *UserService) Refresh(
 	ctx context.Context, in *dto.RefreshInput,
 ) (*dto.RefreshOutput, error) {
 	userID, role, err := s.tokenService.ValidateRefreshToken(in.RefreshToken)

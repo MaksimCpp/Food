@@ -48,7 +48,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	productsService := service.NewPostgreSQLProductsService(
+	productsService := service.NewProductsService(
 		productsRepo, minioStorage, cache,
 	)
 

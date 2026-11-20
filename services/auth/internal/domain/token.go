@@ -1,6 +1,6 @@
 package domain
 
-type TokenService interface {
+type TokenServiceInterface interface {
 	GenerateAccessToken(userID int64, role string) (string, error)
 	GenerateRefreshToken(userID int64, role string) (string, error)
 	ValidateAccessToken(token string) (int64, string, error)

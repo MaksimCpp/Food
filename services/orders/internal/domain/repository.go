@@ -5,9 +5,10 @@ import (
 )
 
 type OrdersRepository interface {
-	Create(ctx context.Context, order *Order) (*Order, error)
-	List(ctx context.Context) ([]*Order, error)
-	Get(ctx context.Context, id int64) (*Order, error)
-	Accept(ctx context.Context, id int64, courier_id int64) (*Order, error)
-	Complete(ctx context.Context, id int64) (*Order, error)
+	CreateOrder(ctx context.Context, order *Order) (*Order, error)
+	ListOrdersWithoutCourier(ctx context.Context) ([]*Order, error)
+	ListOrdersByCourierID(ctx context.Context, courierID int64) ([]*Order, error)
+	GetOrder(ctx context.Context, id int64) (*Order, error)
+	AcceptOrder(ctx context.Context, id int64, courierID int64) (*Order, error)
+	CompleteOrder(ctx context.Context, id int64) (*Order, error)
 }

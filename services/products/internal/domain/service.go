@@ -6,7 +6,7 @@ import (
 	"github.com/MaksimCpp/products/internal/dto"
 )
 
-type ProductsService interface {
+type ProductsServiceInterface interface {
 	Create(ctx context.Context, in *dto.CreateProductInput) (*dto.CreateProductOutput, error)
 	Get(ctx context.Context, id int64) (*dto.GetProductOutput, error)
 	List(ctx context.Context, limit int, offset int) ([]*dto.ListProductOutput, error)

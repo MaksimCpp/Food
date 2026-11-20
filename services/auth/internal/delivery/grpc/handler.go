@@ -14,13 +14,13 @@ import (
 type AuthHandler struct {
 	authpb.UnimplementedAuthServiceServer
 
-	service      domain.UserService
-	tokenService domain.TokenService
+	service      domain.UserServiceInterface
+	tokenService domain.TokenServiceInterface
 }
 
 func NewAuthHandler(
-	service domain.UserService,
-	tokenService domain.TokenService,
+	service domain.UserServiceInterface,
+	tokenService domain.TokenServiceInterface,
 ) *AuthHandler {
 	return &AuthHandler{
 		service:      service,
